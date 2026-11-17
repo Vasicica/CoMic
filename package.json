@@ -4,6 +4,6 @@
   "private": true,
   "description": "CoMic. Aplicatia de telefon e in android/ (Kotlin nativ), receptorul in windows/ (Rust). Acest fisier exista doar pentru ca eas-cli cere un proiect Node in radacina; nu are dependente si nu se instaleaza nimic.",
   "scripts": {
-    "apk": "eas build --platform android --profile apk"
+    "apk": "node tools/eas_apk.mjs"
   }
 }

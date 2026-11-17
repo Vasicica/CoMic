@@ -20,9 +20,18 @@ trebuie nimic instalat local:
 
     eas login
     eas init          # o singura data: scrie projectId in app.json
-    npm run apk       # sau: eas build --platform android --profile apk
+    npm run apk       # porneste compilarea
 
 Configuratia e in `.eas/build/android-apk.yml`, iar profilul in `eas.json`.
+
+**Foloseste `npm run apk`, nu `eas build` direct.** Comanda directa se opreste
+cu `Could not read applicationId from Android project`: eas-cli vede folderul
+`android/` si caută identificatorul aplicatiei cu expresia
+`/applicationId ['"](.*)['"]/` — spatiu, apoi ghilimea, adica sintaxa Groovy.
+Noi scriem Kotlin DSL, unde semnul egal e obligatoriu, deci expresia nu
+potriveste nimic. `tools/eas_apk.mjs` citeste identificatorul din Gradle si il
+da mai departe prin variabila de mediu pe care eas-cli o verifica inaintea
+citirii. Nu e scris de mana nicaieri, deci nu poate rămâne in urma.
 
 **Nu e calea obisnuita a EAS.** Exemplul oficial trece prin `eas/prebuild`,
 care genereaza folderul `android/` dintr-un proiect React Native — adica ar

@@ -3,9 +3,16 @@
     "name": "CoMic",
     "slug": "comic",
     "version": "0.1.0",
-    "platforms": ["android"],
+    "platforms": [
+      "android"
+    ],
     "android": {
       "package": "md.comic.phone"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "68939fa4-d96e-40e0-a60a-ca5725d5601d"
+      }
     }
   }
 }
