@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "CoMic",
+    "slug": "comic",
+    "version": "0.1.0",
+    "platforms": ["android"],
+    "android": {
+      "package": "md.comic.phone"
+    }
+  }
+}

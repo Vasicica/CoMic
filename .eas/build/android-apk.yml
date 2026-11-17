@@ -1,0 +1,58 @@
+# Compileaza aplicatia de telefon pe serverele EAS, ca sa nu fie nevoie de
+# Android Studio pe calculatorul tau.
+#
+# Atentie: asta nu e calea obisnuita a EAS. Exemplul oficial are pasii
+# eas/install_node_modules, eas/resolve_build_config si eas/prebuild, care
+# genereaza folderul android/ dintr-un proiect React Native. Noi avem deja un
+# proiect Android scris de mana, deci pasii aceia ar rescrie munca noastra.
+# Folosim EAS doar ca masina de compilare: ia codul, cheama Gradle, intoarce
+# APK-ul.
+#
+# Sintaxa: https://docs.expo.dev/custom-builds/schema/
+
+build:
+  name: CoMic APK (Kotlin nativ, fara Expo)
+  steps:
+    - eas/checkout
+
+    # Prima rulare e si o cercetare: aflam ce are imaginea EAS. Daca lipseste
+    # SDK-ul sau platforma 35, se vede aici si nu intr-o eroare de Gradle de
+    # trei sute de linii.
+    - run:
+        name: Ce unelte are imaginea
+        command: |
+          echo "--- Java ---"
+          java -version
+          echo "--- Gradle in PATH? ---"
+          which gradle || echo "gradle nu e in PATH (folosim wrapperul)"
+          echo "--- Android SDK ---"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms" 2>/dev/null || echo "nu vad platforme"
+          ls "$ANDROID_HOME/build-tools" 2>/dev/null || echo "nu vad build-tools"
+
+    - run:
+        name: Compileaza APK-ul
+        working_directory: android
+        command: |
+          # Doua drumuri catre acelasi APK. Wrapperul lipseste din depozit
+          # (gradle-wrapper.jar e binar, iar gradlew e un script generat), deci
+          # folosim Gradle-ul imaginii daca exista. Daca mai tarziu aducem
+          # wrapperul, el are prioritate: fixeaza versiunea si nu depinde de ce
+          # are serverul instalat.
+          if [ -f gradlew ]; then
+            echo "Folosesc wrapperul din depozit."
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --no-daemon --stacktrace
+          elif command -v gradle >/dev/null 2>&1; then
+            echo "Nu e wrapper; folosesc Gradle-ul imaginii: $(gradle --version | grep -i '^Gradle')"
+            gradle assembleDebug --no-daemon --stacktrace
+          else
+            echo "Imaginea nu are nici wrapper, nici gradle in PATH."
+            echo "Atunci wrapperul trebuie adus in depozit, o singura data."
+            exit 1
+          fi
+
+    - eas/upload_artifact:
+        inputs:
+          type: application-archive
+          path: android/app/build/outputs/apk/debug/app-debug.apk

@@ -7,5 +7,16 @@ local.properties
 __pycache__/
 .venv/
 
+# Android Studio
+.idea/
+*.iml
+.cxx/
+captures/
+
 # Configurare de compilare specifica fiecarui calculator
 windows/.cargo/config.toml
+
+# Linia "build/" de mai sus e pentru folderul de compilare al Gradle, dar
+# inghite si .eas/build/, unde stau pasii de compilare din cloud. Aceia
+# trebuie sa ajunga in depozit: EAS compileaza din git, nu din ce e pe disc.
+!.eas/build/

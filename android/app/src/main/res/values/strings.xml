@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CoMic</string>
+
+    <!-- Notificarea serviciului. %1$s este adresa calculatorului. -->
+    <string name="notification_title">CoMic trimite microfonul</string>
+    <string name="notification_text">Catre %1$s</string>
+    <string name="stop">Opreste</string>
+    <string name="channel_name">Trimitere microfon</string>
+</resources>
