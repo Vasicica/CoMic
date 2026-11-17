@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -135,6 +136,11 @@ fun StreamScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Bg)
+            // Fundalul merge pana la marginea ecranului, dar continutul nu:
+            // de la Android 15, aplicatia care tinteste SDK 35 se intinde
+            // obligatoriu sub bara de stare, deci spatiul acela trebuie cerut
+            // singur, altfel titlul sta peste ceas.
+            .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
     ) {
