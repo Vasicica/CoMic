@@ -1,0 +1,8 @@
+target/
+build/
+.gradle/
+*.apk
+*.keystore
+local.properties
+__pycache__/
+.venv/

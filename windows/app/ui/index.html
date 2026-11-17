@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoMic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== Design tokens (vezi README.md) ===== */
+:root{
+  --bg:#0A0A0A; --bg-deep:#050505; --bar:#080808;
+  --surface:#101010; --surface-hover:#141414; --surface-2:#171717; --input:#0A0A0A;
+  --border:#1C1C1C; --border-soft:#161616; --border-strong:#262626;
+  --text:#EDEDED; --text-strong:#F5F5F5; --muted:#8F8F8F; --faint:#7A7A7A; --dim:#A3A3A3;
+  --accent:#818CF8; --accent-ink:#0A0A0A;
+  --ok:#4ADE80; --warn:#FBBF24; --danger:#E5484D;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-win:14px;
+  --font:Inter,system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --ease:.2s ease;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg-deep);font-family:var(--font);color:var(--text);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg{flex-shrink:0}
+
+.window{width:1040px;height:720px;background:var(--bg);border:1px solid #1F1F1F;border-radius:var(--r-win);overflow:hidden;display:flex;flex-direction:column}
+
+/* Title bar */
+.titlebar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-bottom:1px solid var(--border-soft);-webkit-app-region:drag}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:24px;height:24px;border-radius:7px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.brand b{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.brand small{font:11px var(--mono);color:var(--faint)}
+.winbtns{display:flex;gap:2px;-webkit-app-region:no-drag}
+.winbtn{width:36px;height:30px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--muted);display:grid;place-items:center;transition:background var(--ease),color var(--ease)}
+.winbtn:hover{background:#1A1A1A;color:var(--text)}
+.winbtn.close:hover{background:var(--danger);color:#fff}
+
+/* Menu bar */
+.menubar{height:52px;display:flex;align-items:center;gap:4px;padding:0 12px;border-bottom:1px solid var(--border-soft)}
+.tab{height:34px;display:flex;align-items:center;gap:8px;padding:0 14px;border:0;border-radius:var(--r-md);background:transparent;color:var(--muted);font-size:13px;font-weight:500;transition:background var(--ease),color var(--ease)}
+.tab:hover{background:#151515;color:var(--text)}
+.tab[aria-selected=true]{background:var(--surface-2);color:var(--text-strong)}
+.spacer{flex:1}
+.voice-chip{display:flex;align-items:center;gap:8px;height:30px;padding:0 12px;border-radius:999px;background:#121212;border:1px solid #1F1F1F;font-size:12px}
+.voice-chip span:first-child{font-size:11px;color:var(--faint)}
+.voice-chip span:last-child{font-weight:500}
+
+/* Dynamic view */
+main{flex:1;min-height:0;overflow:auto;padding:28px 32px}
+.view{display:none;flex-direction:column;gap:20px;animation:fade .25s ease}
+.view.active{display:flex}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+h1{margin:0;font-size:20px;font-weight:600;letter-spacing:-.02em}
+.sub{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.panel{padding:20px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border)}
+h2{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+/* Status strip */
+.strip{display:flex;align-items:center;gap:24px;padding:18px 20px}
+.strip .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#1A1A1A;color:var(--muted)}
+.strip.on .ico{background:rgba(74,222,128,.14);color:var(--ok)}
+.strip .txt{display:flex;flex-direction:column;gap:3px;min-width:190px}
+.strip .txt b{font-size:14px;font-weight:600}
+.strip .txt span{font-size:12px;color:var(--muted)}
+.meter{flex:1;height:32px;display:flex;align-items:center;gap:3px}
+.meter i{flex:1;border-radius:2px;height:10%;background:#1F1F1F;transition:height .12s ease}
+.strip.on .meter i{background:rgba(74,222,128,.75)}
+.strip.on .meter i.peak{background:var(--warn)}
+.stats{display:flex;gap:20px;font:12px var(--mono)}
+.stats div{display:flex;flex-direction:column;gap:3px}
+.stats small{font:11px var(--font);color:var(--faint)}
+
+/* Connection cards */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:14px;padding:18px;min-height:210px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border);transition:transform var(--ease),background var(--ease),border-color var(--ease),box-shadow var(--ease)}
+.card:hover{transform:translateY(-2px);background:var(--surface-hover)}
+.card.on{border-color:rgba(74,222,128,.45);box-shadow:0 0 0 3px rgba(74,222,128,.08)}
+.card-top{display:flex;align-items:center;justify-content:space-between}
+.card-ico{width:38px;height:38px;border-radius:10px;background:#181818;border:1px solid #242424;display:grid;place-items:center;color:var(--dim)}
+.card.on .card-ico{color:var(--ok)}
+.pill{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.card.on .pill{background:rgba(74,222,128,.12);color:var(--ok)}
+.card-body{display:flex;flex-direction:column;gap:4px;flex:1}
+.card-body b,.card-body label{font-size:15px;font-weight:600}
+.card-body span{font-size:12px;color:var(--muted);line-height:1.45}
+.btn{height:36px;border-radius:var(--r-md);font-size:12.5px;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);transition:filter .15s ease,background .15s ease}
+.btn:hover{filter:brightness(1.12)}
+.card.on .btn{background:transparent;border-color:#2A2A2A;color:var(--text)}
+.btn-ghost{height:34px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:var(--r-md);border:1px solid var(--border-strong);background:#121212;color:var(--text);font-size:12.5px;font-weight:500}
+.btn-ghost:hover{background:#1C1C1C}
+.field{height:34px;padding:0 10px;border-radius:var(--r-md);border:1px solid var(--border-strong);background:var(--input);color:var(--text);font:12.5px var(--mono)}
+.ip-row{display:flex;gap:6px;margin-top:2px}
+.ip-row .field:first-child{flex:1;min-width:0}
+.ip-row .field:last-child{width:62px;color:var(--dim)}
+
+/* Effects grid */
+.fx-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.tuning{margin-top:14px}
+.tuning h2{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hint{font-size:11.5px;color:var(--warn);display:none}
+.hint.on{display:block}
+.fx{position:relative;padding:0;text-align:left;border-radius:var(--r-lg);overflow:hidden;background:var(--surface);color:var(--text);border:1px solid var(--border);transition:transform var(--ease),box-shadow .25s ease,border-color .25s ease}
+.fx:hover{transform:translateY(-3px);border-color:#2A2A2A}
+.fx[aria-checked=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 10px 36px -10px rgba(129,140,248,.7)}
+.fx-art{position:relative;aspect-ratio:4/3;overflow:hidden;background:#0C0C0C;display:grid;place-items:center;color:var(--dim)}
+.fx-art img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block;transition:transform .35s ease}
+.fx:hover .fx-art img{transform:scale(1.05)}
+.tag{position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 7px;border-radius:var(--r-sm);background:rgba(10,10,10,.72);color:var(--dim)}
+.tag.pro{color:var(--warn)}
+.check{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:none;place-items:center}
+.fx[aria-checked=true] .check{display:grid}
+.fx-meta{display:flex;flex-direction:column;gap:3px;padding:10px 12px 12px}
+.fx-meta b{font-size:13px;font-weight:600}
+.fx-meta span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Options */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opt{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.opt:last-child{margin-bottom:0}
+.opt-row{display:flex;justify-content:space-between;font-size:13px;font-weight:500}
+.opt-row output{font:12px var(--mono);color:var(--dim)}
+.opt small{font-size:12px;color:var(--faint)}
+.opt .ends{display:flex;justify-content:space-between;font-size:11px;color:var(--faint)}
+select.field{font:13px var(--font);height:36px}
+input[type=range]{accent-color:var(--accent);width:100%}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid #191919}
+.toggle-row div{display:flex;flex-direction:column;gap:3px}
+.toggle-row b{font-size:13px;font-weight:500}
+.toggle-row span{font-size:12px;color:var(--faint)}
+.switch{width:40px;height:24px;border-radius:999px;border:0;padding:2px;background:#2A2A2A;display:flex;transition:background var(--ease)}
+.switch::after{content:"";width:20px;height:20px;border-radius:50%;background:#F5F5F5;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform var(--ease)}
+.switch[aria-checked=true]{background:var(--accent)}
+.switch[aria-checked=true]::after{transform:translateX(16px)}
+.port-row{display:flex;align-items:center;justify-content:space-between;padding-top:12px;font-size:13px;font-weight:500}
+.port-row .field{width:90px;text-align:right}
+
+/* Help */
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.step{display:flex;flex-direction:column;gap:10px}
+.step .n{width:28px;height:28px;border-radius:var(--r-md);background:#181818;border:1px solid var(--border-strong);display:grid;place-items:center;font:600 12px var(--mono);color:var(--accent)}
+.step b{font-size:14px;font-weight:600}
+.step span{font-size:12.5px;color:var(--muted);line-height:1.5}
+.links{padding:0;overflow:hidden}
+.links a{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #191919;color:var(--text);text-decoration:none;font-size:13px;transition:background var(--ease)}
+.links a:last-child{border-bottom:0}
+.links a:hover{background:var(--surface-hover)}
+.links a span{color:var(--faint)}
+
+/* Status bar */
+.statusbar{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-top:1px solid var(--border-soft);background:var(--bar);font-size:12px}
+.status-l,.status-r{display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);box-shadow:0 0 0 3px #1A1A1A}
+.statusbar.on .dot{background:var(--ok);box-shadow:0 0 0 3px rgba(74,222,128,.14)}
+#st-label{font-weight:500;color:var(--muted)}
+.statusbar.on #st-label{color:var(--ok)}
+.st-detail{color:var(--faint)}
+.status-r{color:var(--dim)}
+.status-r b{font-weight:500}
+.status-r small{font:11px var(--mono);color:var(--faint)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite: stroke icons, currentColor -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0V7zM12 17v5"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3l1.8 4.2L17 9l-4.2 1.8L11 15l-1.8-4.2L5 9l4.2-1.8z"/><path d="M18.5 14.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.4M12 17h.01"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0M12 19h.01"/></symbol>
+    <symbol id="i-usb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14M9 6l3-3 3 3M7 9v3l5 3 5-3V9"/><circle cx="12" cy="19" r="2"/></symbol>
+    <symbol id="i-bt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+    <symbol id="i-mega" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4a1 1 0 0 0 1 1h3l9 5V4L7 9H4a1 1 0 0 0-1 1zM7 15l1 5h3"/><path d="M19.5 9a4 4 0 0 1 0 6"/></symbol>
+    <symbol id="i-speaker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4V5zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L19 7"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  </defs>
+</svg>
+
+<div class="window">
+  <header class="titlebar" data-tauri-drag-region>
+    <div class="brand">
+      <div class="logo"><svg width="14" height="14"><use href="#i-mic"/></svg></div>
+      <b>CoMic</b><small>v0.1</small>
+    </div>
+    <div class="winbtns">
+      <button class="winbtn" aria-label="Minimize"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+      <button class="winbtn close" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+  </header>
+
+  <nav class="menubar" role="tablist" aria-label="Main">
+    <button class="tab" role="tab" data-view="connection" aria-selected="true"><svg width="16" height="16"><use href="#i-plug"/></svg>Connection</button>
+    <button class="tab" role="tab" data-view="options" aria-selected="false"><svg width="16" height="16"><use href="#i-sliders"/></svg>Options</button>
+    <button class="tab" role="tab" data-view="effects" aria-selected="false"><svg width="16" height="16"><use href="#i-sparkle"/></svg>Effects</button>
+    <button class="tab" role="tab" data-view="help" aria-selected="false"><svg width="16" height="16"><use href="#i-help"/></svg>Help</button>
+    <div class="spacer"></div>
+    <div class="voice-chip"><span>Voice</span><span id="voice-name">Pirate</span></div>
+  </nav>
+
+  <main>
+    <!-- CONNECTION -->
+    <section class="view active" id="view-connection" role="tabpanel">
+      <div class="head"><div><h1>Connect your phone</h1><p class="sub">Open CoMic on your phone and pick a method. Audio goes to the virtual microphone.</p></div></div>
+      <div class="panel strip" id="strip">
+        <div class="ico"><svg width="20" height="20"><use href="#i-mic"/></svg></div>
+        <div class="txt"><b id="stream-title">Streaming from Pixel 8</b><span id="stream-sub">Into CABLE Input · voice: Pirate</span></div>
+        <div class="meter" id="meter" aria-hidden="true"></div>
+        <div class="stats"><div><small>Latency</small><span id="latency">18 ms</span></div><div><small>Sample rate</small><span>48 kHz</span></div></div>
+      </div>
+      <div class="cards">
+        <article class="card" data-conn="wifi">
+          <div class="card-top"><div class="card-ico"><svg width="18" height="18"><use href="#i-wifi"/></svg></div><span class="pill" data-off="Available">Available</span></div>
+          <div class="card-body"><b>Wi-Fi</b><span data-off="Phone and PC on the same network." data-on="Pixel 8 · 192.168.1.42 · auto-discovered"></span></div>
+          <button class="btn">Quick Connect</button>
+        </article>
+        <article class="card" data-conn="usb">
+          <div class="card-top"><div class="card-ico"><svg width="18" height="18"><use href="#i-usb"/></svg></div><span class="pill" data-off="No device">No device</span></div>
+          <div class="card-body"><b>USB</b><span data-off="Lowest latency. Plug in a cable." data-on="Pixel 8 · USB tethering"></span></div>
+          <button class="btn">Quick Connect</button>
+        </article>
+        <article class="card" data-conn="bt">
+          <div class="card-top"><div class="card-ico"><svg width="18" height="18"><use href="#i-bt"/></svg></div><span class="pill" data-off="Not paired">Not paired</span></div>
+          <div class="card-body"><b>Bluetooth</b><span data-off="No cables, higher latency (~120 ms)." data-on="Pixel 8 · paired"></span></div>
+          <button class="btn">Quick Connect</button>
+        </article>
+        <article class="card" data-conn="ip">
+          <div class="card-top"><div class="card-ico"><svg width="18" height="18"><use href="#i-globe"/></svg></div><span class="pill" data-off="Manual">Manual</span></div>
+          <div class="card-body"><label for="ip">IP address</label>
+            <div class="ip-row"><input id="ip" class="field" value="192.168.1.42" placeholder="192.168.1.42"><input class="field" aria-label="Port" value="45678"></div>
+          </div>
+          <button class="btn">Quick Connect</button>
+        </article>
+      </div>
+    </section>
+
+    <!-- OPTIONS -->
+    <section class="view" id="view-options" role="tabpanel">
+      <div><h1>Options</h1><p class="sub">Audio routing, network and startup behaviour.</p></div>
+      <div class="two">
+        <div class="panel">
+          <h2>Audio</h2>
+          <div class="opt"><label class="opt-row" for="dev">Output device</label>
+            <select id="dev" class="field"><option>CABLE Input (VB-Audio Virtual Cable)</option><option>Speakers (Realtek Audio) — monitor</option></select>
+            <small>Apps like Discord or CS2 see it as “CABLE Output”.</small></div>
+          <div class="opt"><div class="opt-row"><label for="gain">Gain</label><output id="gain-out">×1.0</output></div>
+            <input id="gain" type="range" min="0.5" max="2" step="0.1" value="1"></div>
+          <div class="opt"><div class="opt-row"><label for="buf">Buffer</label><output id="buf-out">3 × 10 ms</output></div>
+            <input id="buf" type="range" min="1" max="10" step="1" value="3">
+            <div class="ends"><span>Lower latency</span><span>Steadier on weak Wi-Fi</span></div></div>
+        </div>
+        <div class="panel">
+          <h2>General</h2>
+          <div class="toggle-row"><div><b>Launch at startup</b><span>Start CoMic when Windows starts</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Launch at startup"></button></div>
+          <div class="toggle-row"><div><b>Auto-reconnect</b><span>Reconnect to the last phone automatically</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Auto-reconnect"></button></div>
+          <div class="toggle-row"><div><b>Minimize to tray</b><span>Keep running when the window is closed</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Minimize to tray"></button></div>
+          <div class="toggle-row"><div><b>Beta updates</b><span>Get new voices and fixes early</span></div><button class="switch" role="switch" aria-checked="false" aria-label="Beta updates"></button></div>
+          <div class="port-row"><label for="port">UDP port</label><input id="port" class="field" value="45678"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EFFECTS -->
+    <section class="view" id="view-effects" role="tabpanel">
+      <div class="head">
+        <div><h1>Voice effects</h1><p class="sub">Applied live to the virtual microphone. Click a voice to switch.</p></div>
+        <button class="btn-ghost"><svg width="14" height="14"><use href="#i-speaker"/></svg>Test with my voice</button>
+      </div>
+      <div class="fx-grid" id="fx-grid" role="radiogroup" aria-label="Voice"></div>
+
+      <div class="two tuning">
+        <div class="panel">
+          <h2>Fine tuning</h2>
+          <div class="opt"><div class="opt-row"><label for="mix">Effect amount</label><output id="mix-out">100%</output></div>
+            <input id="mix" type="range" min="0" max="100" step="5" value="100">
+            <div class="ends"><span>Your voice</span><span>Full effect</span></div>
+            <small class="hint" id="mix-hint">This voice shifts pitch &mdash; below 100% you hear two voices at once. Use Pitch instead.</small></div>
+          <div class="opt"><div class="opt-row"><label for="locut">Low cut</label><output id="locut-out">Off</output></div>
+            <input id="locut" type="range" min="0" max="400" step="10" value="0">
+            <small>Removes rumble, wind and desk thumps.</small></div>
+          <div class="opt"><div class="opt-row"><label for="hicut">High cut</label><output id="hicut-out">Off</output></div>
+            <input id="hicut" type="range" min="2000" max="20000" step="500" value="20000">
+            <small>Removes hiss and harsh sibilance.</small></div>
+        </div>
+        <div class="panel">
+          <h2>Advanced<button class="btn-ghost" id="fx-reset" type="button">Reset to voice</button></h2>
+          <div class="opt"><div class="opt-row"><label for="pitch">Pitch</label><output id="pitch-out">0 st</output></div>
+            <input id="pitch" type="range" min="-12" max="12" step="1" value="0">
+            <div class="ends"><span>Deeper</span><span>Higher</span></div></div>
+          <div class="opt"><div class="opt-row"><label for="drive">Drive</label><output id="drive-out">0.0</output></div>
+            <input id="drive" type="range" min="0" max="10" step="0.5" value="0">
+            <small>Distortion. Higher is rougher and louder.</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HELP -->
+    <section class="view" id="view-help" role="tabpanel">
+      <div><h1>Get started</h1><p class="sub">Three steps to use your phone as a microphone.</p></div>
+      <div class="three">
+        <div class="panel step"><span class="n">1</span><b>Install CoMic on your phone</b><span>Android app. Keep phone and PC on the same Wi-Fi, or plug in a USB cable.</span></div>
+        <div class="panel step"><span class="n">2</span><b>Install VB-Cable</b><span>The free virtual audio cable CoMic plays into. Restart Windows after installing.</span></div>
+        <div class="panel step"><span class="n">3</span><b>Pick “CABLE Output” in your app</b><span>In Discord, CS2 or Chrome, choose CABLE Output as the microphone.</span></div>
+      </div>
+      <div class="panel links">
+        <a href="#">Troubleshooting: no sound or crackling<span>→</span></a>
+        <a href="#">Report a problem<span>→</span></a>
+        <a href="#">About CoMic<span>v0.1 →</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="statusbar" id="statusbar">
+    <div class="status-l"><span class="dot"></span><span id="st-label">Connected</span><span class="st-detail" id="st-detail">· Pixel 8 · 18 ms</span></div>
+    <div class="status-r"><svg width="14" height="14" id="st-icon"><use href="#i-wifi"/></svg><b id="st-proto">Wi-Fi</b><small id="st-proto-d">UDP 45678</small></div>
+  </footer>
+</div>
+
+<script>
+// Voices: id-urile = windows/src/effects/voices.rs (PRESETS). free = acelasi camp ca in Rust.
+// semitones + drive = valorile din PRESETS (windows/src/effects/voices.rs),
+// ca sa stie cursoarele unde sa revina cand schimbi vocea.
+const VOICES = [
+  { id: 'normal',        name: 'Normal',    desc: 'Your voice, untouched',          free: true, icon: 'i-mic', semitones: 0, drive: 0.0 },
+  { id: 'pirat',         name: 'Pirate',    desc: 'Deep, rough, a bit of grit',     free: true, img: 'assets/avatars/pirat.jpg', semitones: -4, drive: 2.5 },
+  { id: 'mosneag',       name: 'Grandpa',   desc: 'Lower, with a gentle tremble',   free: true, img: 'assets/avatars/mosneag.jpg', semitones: -2, drive: 1.2 },
+  { id: 'robot',         name: 'Robot',     desc: 'Classic metallic ring',          img: 'assets/avatars/robot.png', semitones: 0, drive: 1.5 },
+  { id: 'radio',         name: 'Radio',     desc: 'Narrow-band walkie-talkie',      img: 'assets/avatars/radio.jpg', semitones: 0, drive: 3.0 },
+  { id: 'megafon',       name: 'Megaphone', desc: 'Loud, distorted, narrow',        icon: 'i-mega', semitones: 0, drive: 6.0 },
+  { id: 'dinozaur',      name: 'Dinosaur',  desc: 'Way down, with a growl',         img: 'assets/avatars/dinozaur.jpg', semitones: -9, drive: 3.5 },
+  { id: 'demon',         name: 'Demon',     desc: 'Deep and distorted',             img: 'assets/avatars/demon.jpg', semitones: -7, drive: 5.0 },
+  { id: 'veverita',      name: 'Squirrel',  desc: 'Pitched way up',                 img: 'assets/avatars/veverita.jpg', semitones: 7, drive: 0.0 },
+  { id: 'extraterestru', name: 'Alien',     desc: 'Fast ring over a raised voice',  img: 'assets/avatars/extraterestru.jpg', semitones: 2, drive: 0.0 },
+];
+const CONN = {
+  wifi: { label: 'Wi-Fi',     detail: 'UDP 45678', latency: '18 ms',  icon: 'i-wifi'  },
+  usb:  { label: 'USB',       detail: 'ADB',       latency: '9 ms',   icon: 'i-usb'   },
+  bt:   { label: 'Bluetooth', detail: 'A2DP',      latency: '120 ms', icon: 'i-bt'    },
+  ip:   { label: 'Manual IP', detail: '',          latency: '21 ms',  icon: 'i-globe' },
+};
+const state = { view: 'connection', conn: 'wifi', voice: 'pirat' };
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// Tabs
+$$('.tab').forEach(t => t.addEventListener('click', () => {
+  state.view = t.dataset.view;
+  $$('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + state.view));
+}));
+
+// Effects grid
+const grid = $('#fx-grid');
+VOICES.forEach(v => {
+  const b = document.createElement('button');
+  b.className = 'fx'; b.setAttribute('role', 'radio'); b.dataset.voice = v.id ?? '';
+  b.innerHTML = `
+    <div class="fx-art">
+      ${v.img ? `<img src="${v.img}" alt="">` : `<svg width="40" height="40"><use href="#${v.icon}"/></svg>`}
+      <span class="tag ${v.free ? '' : 'pro'}">${v.free ? '' : '<svg width="10" height="10"><use href="#i-lock"/></svg>'}${v.free ? 'FREE' : 'PRO'}</span>
+      <span class="check"><svg width="13" height="13"><use href="#i-check"/></svg></span>
+    </div>
+    <div class="fx-meta"><b>${v.name}</b><span>${v.desc}</span></div>`;
+  b.addEventListener('click', () => { state.voice = v.id; render(); });
+  grid.appendChild(b);
+});
+
+// Connection cards
+$$('.card').forEach(c => $('.btn', c).addEventListener('click', () => {
+  state.conn = state.conn === c.dataset.conn ? null : c.dataset.conn; render();
+}));
+
+// Options
+$('#gain').addEventListener('input', e => $('#gain-out').textContent = '×' + Number(e.target.value).toFixed(1));
+$('#buf').addEventListener('input', e => $('#buf-out').textContent = e.target.value + ' × 10 ms');
+$$('.switch').forEach(s => s.addEventListener('click', () => s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true')));
+
+// Level meter (demo animation — in aplicatie vine din nivelul RMS real)
+const meter = $('#meter');
+for (let i = 0; i < 40; i++) meter.appendChild(document.createElement('i'));
+setInterval(() => {
+  if (!state.conn) { $$('i', meter).forEach(b => { b.style.height = '10%'; b.classList.remove('peak'); }); return; }
+  $$('i', meter).forEach((b, i) => {
+    const h = Math.max(12, Math.min(98, 30 + 50 * Math.abs(Math.sin(Date.now() / 300 + i / 3)) * Math.random() + 20 * Math.random()));
+    b.style.height = h + '%'; b.classList.toggle('peak', h > 88);
+  });
+}, 120);
+
+// Reglaje de voce. Inaltimea si distorsiunea pornesc de la valorile vocii alese;
+// mix-ul si taierile sunt reglajele tale, deci nu se schimba cand schimbi vocea.
+const TUNE = [
+  { id: 'mix',   out: v => v + '%' },
+  { id: 'locut', out: v => +v === 0 ? 'Off' : v + ' Hz' },
+  { id: 'hicut', out: v => +v >= 20000 ? 'Off' : (v / 1000).toFixed(1) + ' kHz' },
+  { id: 'pitch', out: v => (v > 0 ? '+' : '') + v + ' st' },
+  { id: 'drive', out: v => Number(v).toFixed(1) },
+];
+TUNE.forEach(({ id, out }) => {
+  const input = $('#' + id);
+  input.addEventListener('input', () => {
+    $('#' + id + '-out').textContent = out(input.value);
+    if (id === 'mix') updateMixHint();
+  });
+});
+
+function updateMixHint() {
+  const voice = VOICES.find(v => v.id === state.voice) || VOICES[0];
+  $('#mix-hint').classList.toggle('on', voice.semitones !== 0 && +$('#mix').value < 100);
+}
+
+function syncTuning(voice) {
+  $('#pitch').value = voice.semitones;
+  $('#drive').value = voice.drive;
+  TUNE.forEach(({ id, out }) => $('#' + id + '-out').textContent = out($('#' + id).value));
+  updateMixHint();
+}
+
+$('#fx-reset').addEventListener('click', () => {
+  $('#mix').value = 100;
+  $('#locut').value = 0;
+  $('#hicut').value = 20000;
+  render();
+});
+
+function render() {
+  const voice = VOICES.find(v => v.id === state.voice) || VOICES[0];
+  syncTuning(voice);
+  $('#voice-name').textContent = voice.name;
+  $$('.fx').forEach(b => b.setAttribute('aria-checked', (b.dataset.voice || null) === state.voice));
+
+  const on = !!state.conn;
+  $$('.card').forEach(c => {
+    const active = c.dataset.conn === state.conn;
+    c.classList.toggle('on', active);
+    const pill = $('.pill', c); pill.textContent = active ? 'Connected' : pill.dataset.off;
+    const d = $('.card-body span[data-off]', c); if (d) d.textContent = active ? d.dataset.on : d.dataset.off;
+    $('.btn', c).textContent = active ? 'Disconnect' : 'Quick Connect';
+  });
+  $('#strip').classList.toggle('on', on);
+  $('#stream-title').textContent = on ? 'Streaming from Pixel 8' : 'Waiting for a phone';
+  $('#stream-sub').textContent = on ? 'Into CABLE Input · voice: ' + voice.name : 'Open CoMic on your phone to start';
+  $('#latency').textContent = on ? CONN[state.conn].latency : '—';
+
+  const c = CONN[state.conn];
+  $('#statusbar').classList.toggle('on', on);
+  $('#st-label').textContent = on ? 'Connected' : 'Disconnected';
+  $('#st-detail').textContent = on ? '· Pixel 8 · ' + c.latency : '· no phone';
+  $('#st-icon use').setAttribute('href', '#' + (on ? c.icon : 'i-plug'));
+  $('#st-proto').textContent = on ? c.label : 'Idle';
+  $('#st-proto-d').textContent = on ? (state.conn === 'ip' ? $('#ip').value + ':45678' : c.detail) : '';
+}
+render();
+</script>
+
+<script>
+// Fereastra nu are bara de titlu a Windows-ului (decorations: false), deci
+// butoanele de minimizare si inchidere trebuie legate de Tauri. Fara asta,
+// fereastra nu s-ar putea inchide decat din Task Manager.
+(() => {
+  const api = window.__TAURI__;
+  if (!api) return; // deschis direct in browser, nu in aplicatie
+  const appWindow = api.window.getCurrentWindow();
+  const buttons = document.querySelectorAll(".winbtn");
+  buttons[0].addEventListener("click", () => appWindow.minimize());
+  buttons[1].addEventListener("click", () => appWindow.close());
+})();
+</script>
+</body>
+</html>

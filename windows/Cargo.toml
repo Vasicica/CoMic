@@ -1,0 +1,25 @@
+[workspace]
+members = ["app"]
+
+[package]
+name = "comic-receiver"
+version = "0.1.0"
+edition = "2021"
+description = "CoMic: nucleul audio si linia de comanda"
+
+[lib]
+name = "comic_core"
+path = "src/lib.rs"
+
+# Linia de comanda. Nu depinde de interfata grafica, deci ramane utilizabila
+# chiar daca lantul de unelte pentru Tauri inca nu este instalat.
+[[bin]]
+name = "comic-receiver"
+path = "src/main.rs"
+
+[dependencies]
+cpal = "0.15"
+
+[profile.release]
+opt-level = 3
+lto = true
