@@ -6,3 +6,6 @@ build/
 local.properties
 __pycache__/
 .venv/
+
+# Configurare de compilare specifica fiecarui calculator
+windows/.cargo/config.toml

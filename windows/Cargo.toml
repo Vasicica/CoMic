@@ -19,6 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 cpal = "0.15"
+serde = { version = "1", features = ["derive"] }
 
 [profile.release]
 opt-level = 3

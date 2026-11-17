@@ -5,6 +5,7 @@
 
 pub mod audio;
 pub mod effects;
+pub mod engine;
 pub mod jitter;
 pub mod monitor;
 pub mod net;

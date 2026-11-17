@@ -433,6 +433,7 @@ name = "comic-receiver"
 version = "0.1.0"
 dependencies = [
  "cpal",
+ "serde",
 ]
 
 [[package]]

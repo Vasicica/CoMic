@@ -4,7 +4,8 @@
 //! scrii zece randuri aici, nu o zi de programare. Motorul ramane acelasi.
 
 /// Setarile unei voci. Campurile `None` inseamna "efectul nu se aplica".
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VoicePreset {
     /// Numele scurt folosit in linia de comanda.
     pub id: &'static str,

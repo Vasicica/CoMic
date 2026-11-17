@@ -18,11 +18,14 @@ use biquad::{Biquad, GENTLE_Q};
 use pitch::{semitones_to_ratio, PitchShifter};
 pub use voices::{find_preset, VoicePreset, PRESETS};
 
+use serde::{Deserialize, Serialize};
+
 use crate::proto::SAMPLE_RATE;
 
 /// Reglajele utilizatorului, asezate peste setarile vocii alese.
 /// `None` inseamna "lasa cum e in voce".
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VoiceSettings {
     /// Cat de expus este efectul: 0.0 = numai vocea ta, 1.0 = numai efectul.
     pub mix: Option<f32>,

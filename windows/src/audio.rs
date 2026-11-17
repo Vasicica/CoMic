@@ -4,6 +4,8 @@
 //! "CABLE Input", iar aplicatiile (CS2, Discord, Chrome) aud "CABLE Output"
 //! ca microfon. Cand apare driverul propriu, se schimba doar numele cautat aici.
 
+use std::sync::{Arc, Mutex};
+
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Device, SampleFormat, StreamConfig};
 
@@ -12,6 +14,21 @@ use crate::proto::SAMPLE_RATE;
 
 /// Fragmentul de nume dupa care recunoastem microfonul virtual.
 const VIRTUAL_DEVICE_HINT: &str = "CABLE Input";
+
+/// Ce se intampla cu sunetul inainte sa ajunga la placa, tinut in spatele unui
+/// lacat ca sa poata fi schimbat *in timp ce* sunetul curge. Fara asta, orice
+/// schimbare de voce ar cere oprirea si repornirea fluxului, adica o pauza
+/// auzita si o reconectare inutila.
+pub struct Processing {
+    pub voice: Option<VoiceChain>,
+    pub gain: f32,
+}
+
+impl Processing {
+    pub fn new(voice: Option<VoiceChain>, gain: f32) -> Self {
+        Self { voice, gain }
+    }
+}
 
 pub struct Playback {
     _stream: cpal::Stream,
@@ -87,8 +104,7 @@ fn pick_device(requested: Option<&str>) -> Result<Device, AudioError> {
 /// de proba). Asa, acelasi lant de redare si de efecte serveste ambele cazuri.
 pub fn start(
     requested_device: Option<&str>,
-    gain: f32,
-    mut voice: Option<VoiceChain>,
+    processing: Arc<Mutex<Processing>>,
     mut fill_mono: impl FnMut(&mut [i16]) + Send + 'static,
 ) -> Result<Playback, AudioError> {
     let device = pick_device(requested_device)?;
@@ -123,9 +139,18 @@ pub fn start(
 
                 fill_mono(&mut mono);
 
-                if let Some(voice) = voice.as_mut() {
-                    voice.process(&mut mono);
-                }
+                // Daca lacatul e ocupat o clipa (interfata schimba vocea chiar
+                // acum), lasam sunetul sa treaca neprelucrat: o clipa de voce
+                // naturala e mai buna decat o intrerupere.
+                let gain = match processing.lock() {
+                    Ok(mut processing) => {
+                        if let Some(voice) = processing.voice.as_mut() {
+                            voice.process(&mut mono);
+                        }
+                        processing.gain
+                    }
+                    Err(_) => 1.0,
+                };
 
                 for (frame_index, frame) in output.chunks_mut(channels as usize).enumerate() {
                     let sample = (mono[frame_index] as f32 / i16::MAX as f32) * gain;

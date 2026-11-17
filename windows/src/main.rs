@@ -3,12 +3,12 @@
 //! Primeste audio de la telefon prin UDP si il reda in microfonul virtual,
 //! ca orice aplicatie (CS2, Discord, Chrome) sa il vada ca microfon normal.
 
-use comic_core::{audio, effects, jitter, monitor, net};
-
-use std::sync::{Arc, Mutex};
+use std::thread;
 use std::time::Duration;
 
-use jitter::JitterBuffer;
+use comic_core::effects;
+use comic_core::engine::{Engine, Source, StartRequest};
+use comic_core::{audio, jitter, monitor, net};
 
 struct Options {
     port: u16,
@@ -160,119 +160,88 @@ fn main() {
         return;
     }
 
-    let voice = match options.voice.as_deref() {
-        Some(id) => match effects::find_preset(id) {
-            Some(preset) => {
-                println!("[voce] {} - {}", preset.name, preset.description);
-                Some(effects::VoiceChain::new(preset, options.voice_settings))
-            }
+    // Validam vocea aici, ca utilizatorul sa afle imediat daca a gresit numele,
+    // nu dupa ce motorul porneste si tace.
+    if let Some(id) = options.voice.as_deref() {
+        match effects::find_preset(id) {
+            Some(preset) => println!("[voce] {} - {}", preset.name, preset.description),
             None => {
                 eprintln!("Vocea \"{id}\" nu exista. Vezi --list-voices.");
                 std::process::exit(2);
             }
-        },
-        None => None,
-    };
-
-    match options.input.clone() {
-        Some(microphone) => run_monitor(&options, &microphone, voice),
-        None => run_network(&options, voice),
+        }
     }
-}
 
-/// Ascultare de proba: sunetul vine de la un microfon deja instalat in Windows.
-/// Pana exista aplicatia de telefon, asa poti auzi vocile cu vocea ta.
-fn run_monitor(options: &Options, microphone: &str, voice: Option<effects::VoiceChain>) {
-    let queue = Arc::new(Mutex::new(monitor::MicQueue::new()));
-
-    let capture = match monitor::start_capture(Some(microphone), Arc::clone(&queue)) {
-        Ok(capture) => capture,
-        Err(error) => {
-            eprintln!("[microfon] {error}");
-            eprintln!("Sfat: vezi microfoanele disponibile cu --list-inputs.");
-            std::process::exit(1);
-        }
+    let source = if options.input.is_some() {
+        Source::Microphone
+    } else {
+        Source::Network
     };
-    println!("[microfon] ascult de la \"{}\"", capture.device_name);
 
-    let playback = start_playback(options, voice, move |mono| match queue.lock() {
-        Ok(mut queue) => {
-            queue.fill(mono);
-        }
-        Err(_) => mono.fill(0),
+    let engine = Engine::spawn();
+    engine.start(StartRequest {
+        source,
+        output_device: options.device.clone(),
+        input_device: options.input.clone(),
+        port: options.port,
+        buffer_frames: options.buffer_frames,
+        gain: options.gain,
+        voice: options
+            .voice
+            .clone()
+            .unwrap_or_else(|| "normal".to_string()),
+        settings: options.voice_settings,
     });
 
-    println!("[gata] vorbeste - te auzi in \"{}\".", playback.device_name);
-    println!("Ctrl+C pentru oprire.");
+    report_until_interrupted(&engine, source);
+}
+
+/// Afiseaza starea o data pe secunda, pana la Ctrl+C.
+fn report_until_interrupted(engine: &Engine, source: Source) -> ! {
+    let mut announced = false;
+    let mut previous_received = 0;
+
     loop {
-        std::thread::sleep(Duration::from_secs(3600));
-    }
-}
+        thread::sleep(Duration::from_secs(1));
+        let status = engine.status();
 
-/// Functionarea normala: sunetul vine de pe telefon, prin retea.
-fn run_network(options: &Options, voice: Option<effects::VoiceChain>) {
-    let buffer = Arc::new(Mutex::new(JitterBuffer::with_prefill(
-        options.buffer_frames,
-    )));
-
-    let buffer_for_playback = Arc::clone(&buffer);
-    let playback = start_playback(options, voice, move |mono| {
-        match buffer_for_playback.lock() {
-            Ok(mut buffer) => {
-                buffer.fill(mono);
-            }
-            Err(_) => mono.fill(0),
-        }
-    });
-    println!("[audio] redau in \"{}\"", playback.device_name);
-
-    net::spawn_discovery(options.port);
-    spawn_stats_reporter(Arc::clone(&buffer));
-
-    if let Err(error) = net::receive_audio(options.port, buffer) {
-        eprintln!("[retea] nu pot asculta pe portul {}: {error}", options.port);
-        std::process::exit(1);
-    }
-}
-
-fn start_playback(
-    options: &Options,
-    voice: Option<effects::VoiceChain>,
-    fill_mono: impl FnMut(&mut [i16]) + Send + 'static,
-) -> audio::Playback {
-    match audio::start(options.device.as_deref(), options.gain, voice, fill_mono) {
-        Ok(playback) => playback,
-        Err(error) => {
-            eprintln!("[audio] {error}");
-            eprintln!("Sfat: instaleaza VB-Cable, apoi verifica cu --list-devices.");
+        if let Some(error) = status.error.as_deref() {
+            eprintln!("[eroare] {error}");
+            eprintln!("Sfat: vezi dispozitivele cu --list-devices si --list-inputs.");
             std::process::exit(1);
         }
-    }
-}
 
-/// Afiseaza o linie de stare pe secunda, cat timp curge audio.
-fn spawn_stats_reporter(buffer: Arc<Mutex<JitterBuffer>>) {
-    std::thread::spawn(move || {
-        let mut previous_received = 0u64;
-        loop {
-            std::thread::sleep(Duration::from_secs(1));
-
-            let Ok(buffer) = buffer.lock() else { continue };
-            let stats = buffer.stats;
-            if stats.frames_received == previous_received {
-                continue; // liniste: nu umplem consola degeaba
+        if status.running && !announced {
+            announced = true;
+            match source {
+                Source::Microphone => println!(
+                    "[gata] vorbeste - de la \"{}\" te auzi in \"{}\". Ctrl+C pentru oprire.",
+                    status.input_device, status.output_device
+                ),
+                Source::Network => println!(
+                    "[gata] redau in \"{}\". Ctrl+C pentru oprire.",
+                    status.output_device
+                ),
             }
-            previous_received = stats.frames_received;
-
-            println!(
-                "[stare] buffer {:>3} ms | cadre {} | intarziate {} | pierdute {} | taiate {} | underrun {}",
-                buffer.buffered_ms(),
-                stats.frames_received,
-                stats.frames_dropped_late,
-                stats.frames_missing,
-                stats.frames_trimmed,
-                stats.underruns
-            );
         }
-    });
+
+        // La microfon nu exista statistici de retea, deci aratam doar nivelul.
+        if source == Source::Microphone {
+            continue;
+        }
+
+        if status.frames_received == previous_received {
+            continue; // liniste: nu umplem consola degeaba
+        }
+        previous_received = status.frames_received;
+
+        println!(
+            "[stare] buffer {:>3} ms | cadre {} | pierdute {} | underrun {} | nivel {:.2}",
+            status.buffered_ms,
+            status.frames_received,
+            status.frames_missing,
+            status.underruns,
+            status.level
+        );
+    }
 }

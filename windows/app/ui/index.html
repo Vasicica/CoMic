@@ -349,6 +349,10 @@ const CONN = {
   ip:   { label: 'Manual IP', detail: '',          latency: '21 ms',  icon: 'i-globe' },
 };
 const state = { view: 'connection', conn: 'wifi', voice: 'pirat' };
+// Oglinda starii motorului. Pana la prima citire a comenzii `status`,
+// fereastra arata valori neutre; dupa aceea tot ce scrie in banda de sus si
+// in bara de jos vine din Rust, nu din presupunerile interfetei.
+const live = { running: false, level: 0, bufferedMs: 0, outputDevice: '', error: null };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -360,20 +364,32 @@ $$('.tab').forEach(t => t.addEventListener('click', () => {
 }));
 
 // Effects grid
+// Lista de deasupra tine doar pozele si serveste paginii deschise in browser.
+// In aplicatie, `buildGrid` e chemat din nou cu vocile pe care le cunoaste
+// Rust, ca fereastra sa nu arate niciodata o voce care nu exista in motor.
+let catalog = VOICES;
+const ART = Object.fromEntries(VOICES.map(v => [v.id, { img: v.img, icon: v.icon }]));
 const grid = $('#fx-grid');
-VOICES.forEach(v => {
-  const b = document.createElement('button');
-  b.className = 'fx'; b.setAttribute('role', 'radio'); b.dataset.voice = v.id ?? '';
-  b.innerHTML = `
-    <div class="fx-art">
-      ${v.img ? `<img src="${v.img}" alt="">` : `<svg width="40" height="40"><use href="#${v.icon}"/></svg>`}
-      <span class="tag ${v.free ? '' : 'pro'}">${v.free ? '' : '<svg width="10" height="10"><use href="#i-lock"/></svg>'}${v.free ? 'FREE' : 'PRO'}</span>
-      <span class="check"><svg width="13" height="13"><use href="#i-check"/></svg></span>
-    </div>
-    <div class="fx-meta"><b>${v.name}</b><span>${v.desc}</span></div>`;
-  b.addEventListener('click', () => { state.voice = v.id; render(); });
-  grid.appendChild(b);
-});
+
+function buildGrid(list) {
+  catalog = list;
+  grid.textContent = '';
+  list.forEach(v => {
+    const art = ART[v.id] ?? {};
+    const b = document.createElement('button');
+    b.className = 'fx'; b.setAttribute('role', 'radio'); b.dataset.voice = v.id ?? '';
+    b.innerHTML = `
+      <div class="fx-art">
+        ${art.img ? `<img src="${art.img}" alt="">` : `<svg width="40" height="40"><use href="#${art.icon ?? 'i-sparkle'}"/></svg>`}
+        <span class="tag ${v.free ? '' : 'pro'}">${v.free ? '' : '<svg width="10" height="10"><use href="#i-lock"/></svg>'}${v.free ? 'FREE' : 'PRO'}</span>
+        <span class="check"><svg width="13" height="13"><use href="#i-check"/></svg></span>
+      </div>
+      <div class="fx-meta"><b>${v.name}</b><span>${v.desc ?? v.description ?? ''}</span></div>`;
+    b.addEventListener('click', () => { state.voice = v.id; render(); });
+    grid.appendChild(b);
+  });
+}
+buildGrid(VOICES);
 
 // Connection cards
 $$('.card').forEach(c => $('.btn', c).addEventListener('click', () => {
@@ -385,16 +401,14 @@ $('#gain').addEventListener('input', e => $('#gain-out').textContent = '×' + Nu
 $('#buf').addEventListener('input', e => $('#buf-out').textContent = e.target.value + ' × 10 ms');
 $$('.switch').forEach(s => s.addEventListener('click', () => s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true')));
 
-// Level meter (demo animation — in aplicatie vine din nivelul RMS real)
+// VU-metru: aici se fac doar barele. Inaltimea lor vine din nivelul real
+// publicat de motor, in scriptul de legatura de mai jos.
 const meter = $('#meter');
-for (let i = 0; i < 40; i++) meter.appendChild(document.createElement('i'));
-setInterval(() => {
-  if (!state.conn) { $$('i', meter).forEach(b => { b.style.height = '10%'; b.classList.remove('peak'); }); return; }
-  $$('i', meter).forEach((b, i) => {
-    const h = Math.max(12, Math.min(98, 30 + 50 * Math.abs(Math.sin(Date.now() / 300 + i / 3)) * Math.random() + 20 * Math.random()));
-    b.style.height = h + '%'; b.classList.toggle('peak', h > 88);
-  });
-}, 120);
+for (let i = 0; i < 40; i++) {
+  const bar = document.createElement('i');
+  bar.style.height = '10%';
+  meter.appendChild(bar);
+}
 
 // Reglaje de voce. Inaltimea si distorsiunea pornesc de la valorile vocii alese;
 // mix-ul si taierile sunt reglajele tale, deci nu se schimba cand schimbi vocea.
@@ -414,7 +428,7 @@ TUNE.forEach(({ id, out }) => {
 });
 
 function updateMixHint() {
-  const voice = VOICES.find(v => v.id === state.voice) || VOICES[0];
+  const voice = catalog.find(v => v.id === state.voice) || catalog[0];
   $('#mix-hint').classList.toggle('on', voice.semitones !== 0 && +$('#mix').value < 100);
 }
 
@@ -433,7 +447,7 @@ $('#fx-reset').addEventListener('click', () => {
 });
 
 function render() {
-  const voice = VOICES.find(v => v.id === state.voice) || VOICES[0];
+  const voice = catalog.find(v => v.id === state.voice) || catalog[0];
   syncTuning(voice);
   $('#voice-name').textContent = voice.name;
   $$('.fx').forEach(b => b.setAttribute('aria-checked', (b.dataset.voice || null) === state.voice));
@@ -446,20 +460,194 @@ function render() {
     const d = $('.card-body span[data-off]', c); if (d) d.textContent = active ? d.dataset.on : d.dataset.off;
     $('.btn', c).textContent = active ? 'Disconnect' : 'Quick Connect';
   });
-  $('#strip').classList.toggle('on', on);
-  $('#stream-title').textContent = on ? 'Streaming from Pixel 8' : 'Waiting for a phone';
-  $('#stream-sub').textContent = on ? 'Into CABLE Input · voice: ' + voice.name : 'Open CoMic on your phone to start';
-  $('#latency').textContent = on ? CONN[state.conn].latency : '—';
+  // Cardurile arata ce ai cerut. Banda de sus si bara de jos arata ce face
+  // motorul in realitate, citit din `status`. Cand cele doua nu coincid
+  // (ai apasat Connect dar nu curge sunet), se vede imediat.
+  const run = live.running;
+  const c = CONN[state.conn] ?? CONN.wifi;
 
-  const c = CONN[state.conn];
-  $('#statusbar').classList.toggle('on', on);
-  $('#st-label').textContent = on ? 'Connected' : 'Disconnected';
-  $('#st-detail').textContent = on ? '· Pixel 8 · ' + c.latency : '· no phone';
-  $('#st-icon use').setAttribute('href', '#' + (on ? c.icon : 'i-plug'));
-  $('#st-proto').textContent = on ? c.label : 'Idle';
-  $('#st-proto-d').textContent = on ? (state.conn === 'ip' ? $('#ip').value + ':45678' : c.detail) : '';
+  $('#strip').classList.toggle('on', run);
+  $('#stream-title').textContent = run
+    ? 'Streaming into ' + (live.outputDevice || 'the output device')
+    : on ? 'Listening for the phone' : 'Waiting for a phone';
+  $('#stream-sub').textContent = live.error
+    ? live.error
+    : run ? 'voice: ' + voice.name : 'Open CoMic on your phone to start';
+  $('#latency').textContent = run ? live.bufferedMs + ' ms' : '—';
+
+  $('#statusbar').classList.toggle('on', run);
+  $('#st-label').textContent = live.error ? 'Error' : run ? 'Connected' : on ? 'Listening' : 'Disconnected';
+  $('#st-detail').textContent = live.error
+    ? '· ' + live.error
+    : run ? '· ' + live.bufferedMs + ' ms buffered' : '· no phone';
+  $('#st-icon use').setAttribute('href', '#' + (run ? c.icon : 'i-plug'));
+  $('#st-proto').textContent = run ? c.label : 'Idle';
+  $('#st-proto-d').textContent = run ? (state.conn === 'ip' ? $('#ip').value + ':45678' : c.detail) : '';
 }
 render();
+</script>
+
+<script>
+// Legatura dintre fereastra si motorul audio.
+//
+// Interfata nu atinge niciodata sunetul: trimite comenzi prin `invoke` si isi
+// deseneaza starea din ce raspunde `status`. Daca pagina e deschisa direct in
+// browser, fara Tauri, scriptul iese aici si fereastra ramane doar un desen.
+(() => {
+  const api = window.__TAURI__;
+  if (!api) return;
+  const invoke = api.core.invoke;
+
+  // De douazeci de ori pe secunda: destul de des ca VU-metrul sa para continuu,
+  // destul de rar ca firul interfetei sa nu stea numai in citiri.
+  const STATUS_MS = 50;
+  // O tragere de cursor trimite o singura comanda, la finalul miscarii.
+  const TUNE_MS = 60;
+  // Sub acest nivel barele stau jos, ca metrul sa nu tremure in liniste.
+  const SILENCE = 0.02;
+  // Cat de repede coboara barele dupa un varf. 1 = instant, mic = lin.
+  const FALL = 0.25;
+
+  const bars = $$('i', $('#meter'));
+  const num = (id) => Number($('#' + id).value);
+
+  // Mix-ul si taierile sunt reglajele tale; inaltimea si distorsiunea pornesc
+  // din voce, dar trimitem valoarea de pe cursor, ca sa conteze ce vezi.
+  const settings = () => ({
+    mix: num('mix') / 100,
+    lowCutHz: num('locut') > 0 ? num('locut') : null,
+    highCutHz: num('hicut') < 20000 ? num('hicut') : null,
+    semitones: num('pitch'),
+    drive: num('drive'),
+  });
+
+  // Toate cele patru carduri pornesc acelasi receptor: motorul asculta pe un
+  // port UDP, iar telefonul alege drumul. Eticheta cardului e doar numele
+  // drumului, nu un alt mod de functionare.
+  const startRequest = () => ({
+    source: 'network',
+    outputDevice: $('#dev').value || null,
+    inputDevice: null,
+    port: Number($('#port').value) || 45678,
+    bufferFrames: num('buf'),
+    gain: num('gain'),
+    voice: state.voice,
+    settings: settings(),
+  });
+
+  // Orice comanda trece prin aici, ca o eroare sa ajunga in bara de stare si
+  // nu intr-o consola pe care nimeni nu o deschide.
+  const send = async (name, args) => {
+    try {
+      return await invoke(name, args);
+    } catch (error) {
+      live.error = String(error);
+      render();
+      return null;
+    }
+  };
+
+  // ---- dispozitivele de iesire ----
+  // Lista vine din Windows. Alegem din start cablul virtual, daca exista:
+  // e singurul dispozitiv prin care te aud ceilalti in Discord sau in joc.
+  send('output_devices').then((names) => {
+    if (!names || !names.length) return;
+    const select = $('#dev');
+    select.textContent = '';
+    names.forEach((name) => {
+      const option = document.createElement('option');
+      option.textContent = name;
+      select.appendChild(option);
+    });
+    const cable = names.find((n) => /cable/i.test(n));
+    select.value = cable ?? names[0];
+  });
+
+  // ---- catalogul de voci ----
+  // Rust decide ce voci exista; interfata adauga doar pozele.
+  send('voices').then((list) => {
+    if (!list || !list.length) return;
+    buildGrid(list);
+    if (!list.some((v) => v.id === state.voice)) state.voice = list[0].id;
+    render();
+  });
+
+  // ---- pornire si oprire ----
+  // Cardul isi schimba starea in scriptul de deasupra; aici doar traducem
+  // starea noua in comanda potrivita.
+  $$('.card').forEach((card) =>
+    $('.btn', card).addEventListener('click', () => {
+      live.error = null;
+      if (state.conn) send('start', { request: startRequest() });
+      else send('stop');
+    })
+  );
+
+  // ---- schimbarea vocii din mers ----
+  // Ascultam pe grila, nu pe fiecare buton: butoanele se refac cand vine
+  // catalogul din Rust, grila ramane aceeasi.
+  const pushVoice = () => {
+    if (live.running) send('set_voice', { voice: state.voice, settings: settings() });
+  };
+  grid.addEventListener('click', pushVoice);
+
+  let tuneTimer = null;
+  const pushTuning = () => {
+    clearTimeout(tuneTimer);
+    tuneTimer = setTimeout(pushVoice, TUNE_MS);
+  };
+  TUNE.forEach(({ id }) => $('#' + id).addEventListener('input', pushTuning));
+  $('#fx-reset').addEventListener('click', pushTuning);
+
+  // Volumul are comanda lui: nu reface lantul de efecte, deci nu se aude
+  // nicio pauza cand tragi cursorul.
+  let gainTimer = null;
+  $('#gain').addEventListener('input', () => {
+    clearTimeout(gainTimer);
+    gainTimer = setTimeout(() => {
+      if (live.running) send('set_gain', { gain: num('gain') });
+    }, TUNE_MS);
+  });
+
+  // ---- citirea starii ----
+  // Singurul loc din fereastra care afla ce face motorul.
+  const paintMeter = (level) => {
+    const peak = Math.max(0, Math.min(1, level));
+    bars.forEach((bar, i) => {
+      // Barele din mijloc sar mai sus decat cele de la capete: fara asta,
+      // metrul ar fi un dreptunghi care creste, nu un VU-metru.
+      const shape = 0.45 + 0.55 * Math.sin((Math.PI * (i + 0.5)) / bars.length);
+      const target = peak > SILENCE ? 10 + 88 * peak * shape : 10;
+      const current = parseFloat(bar.style.height) || 10;
+      // Urca instant, coboara lin: asa prinde ochiul varful.
+      const next = target > current ? target : current + (target - current) * FALL;
+      bar.style.height = next.toFixed(1) + '%';
+      bar.classList.toggle('peak', next > 88);
+    });
+  };
+
+  let lastSignature = '';
+  setInterval(async () => {
+    const status = await invoke('status').catch(() => null);
+    if (!status) return;
+
+    live.running = status.running;
+    live.level = status.level;
+    live.bufferedMs = status.bufferedMs;
+    live.outputDevice = status.outputDevice;
+    live.error = status.error ?? null;
+
+    paintMeter(status.running ? status.level : 0);
+
+    // Textul se rescrie numai cand s-a schimbat ceva: altfel am redesena
+    // fereastra de douazeci de ori pe secunda degeaba.
+    const signature = [status.running, status.error, status.bufferedMs, status.voice, status.outputDevice].join('|');
+    if (signature !== lastSignature) {
+      lastSignature = signature;
+      render();
+    }
+  }, STATUS_MS);
+})();
 </script>
 
 <script>
