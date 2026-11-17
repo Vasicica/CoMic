@@ -274,7 +274,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <section class="view" id="view-effects" role="tabpanel">
       <div class="head">
         <div><h1>Voice effects</h1><p class="sub">Applied live to the virtual microphone. Click a voice to switch.</p></div>
-        <button class="btn-ghost"><svg width="14" height="14"><use href="#i-speaker"/></svg>Test with my voice</button>
+        <button class="btn-ghost" id="test-mic" type="button"><svg width="14" height="14"><use href="#i-speaker"/></svg><span id="test-mic-label">Test with my voice</span></button>
       </div>
       <div class="fx-grid" id="fx-grid" role="radiogroup" aria-label="Voice"></div>
 
@@ -352,7 +352,7 @@ const state = { view: 'connection', conn: 'wifi', voice: 'pirat' };
 // Oglinda starii motorului. Pana la prima citire a comenzii `status`,
 // fereastra arata valori neutre; dupa aceea tot ce scrie in banda de sus si
 // in bara de jos vine din Rust, nu din presupunerile interfetei.
-const live = { running: false, level: 0, bufferedMs: 0, outputDevice: '', error: null };
+const live = { running: false, source: null, level: 0, bufferedMs: 0, outputDevice: '', error: null };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -476,6 +476,10 @@ function render() {
   $('#latency').textContent = run ? live.bufferedMs + ' ms' : '—';
 
   $('#statusbar').classList.toggle('on', run);
+  const peMicrofon = live.source === 'microphone';
+  $('#test-mic-label').textContent = peMicrofon ? 'Stop the test' : 'Test with my voice';
+  $('#test-mic').classList.toggle('on', peMicrofon);
+
   $('#st-label').textContent = live.error ? 'Error' : run ? 'Connected' : on ? 'Listening' : 'Disconnected';
   $('#st-detail').textContent = live.error
     ? '· ' + live.error
@@ -609,6 +613,27 @@ render();
     }, TUNE_MS);
   });
 
+  // ---- ascultarea de proba, cu microfonul calculatorului ----
+  // Butonul asta a stat nelegat de la macheta incoace: arata ca un buton si
+  // nu facea nimic. Motorul stia de mult sa asculte microfonul local
+  // (Source::Microphone), doar ca nimeni nu i-o cerea.
+  //
+  // inputDevice ramane null: motorul alege microfonul implicit din Windows.
+  // Portul merge si el, dar motorul nu-l foloseste: pe sursa "microphone" nu
+  // deschide nici ascultarea UDP, nici descoperirea.
+  const testRequest = () => ({ ...startRequest(), source: 'microphone' });
+
+  $('#test-mic').addEventListener('click', async () => {
+    live.error = null;
+    if (live.source === 'microphone') {
+      await send('stop');
+      return;
+    }
+    // Daca merge deja de pe telefon, oprim intai: motorul are un singur lant.
+    if (live.running) await send('stop');
+    await send('start', { request: testRequest() });
+  });
+
   // ---- lucrurile care ajung la motor numai la pornire ----
   // Dispozitivul de iesire, portul si marimea rezervei se trimit o singura
   // data, in cererea de start: motorul nu are comanda care sa le mute din
@@ -649,6 +674,7 @@ render();
     if (!status) return;
 
     live.running = status.running;
+    live.source = status.source ?? null;
     live.level = status.level;
     live.bufferedMs = status.bufferedMs;
     live.outputDevice = status.outputDevice;
@@ -658,7 +684,7 @@ render();
 
     // Textul se rescrie numai cand s-a schimbat ceva: altfel am redesena
     // fereastra de douazeci de ori pe secunda degeaba.
-    const signature = [status.running, status.error, status.bufferedMs, status.voice, status.outputDevice].join('|');
+    const signature = [status.running, status.source, status.error, status.bufferedMs, status.voice, status.outputDevice].join('|');
     if (signature !== lastSignature) {
       lastSignature = signature;
       render();
