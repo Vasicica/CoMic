@@ -122,20 +122,6 @@ pub const PRESETS: &[VoicePreset] = &[
         ..DEFAULT
     },
     VoicePreset {
-        id: "anime",
-        name: "Fata din anime",
-        description: "ridicata si luminoasa, tanara — nu piuitul veveritei",
-        // Doua semitonuri sub veverita: atat desparte "fata tanara" de
-        // "veverita". Filtrul e larg (Q mic), deci nu ingusteaza banda ca la
-        // statia radio — doar subtiaza pieptul vocii si scoate in fata
-        // frecventele unde se aude limpezimea. Fara distorsiune: caracterul
-        // trebuie sa ramana curat.
-        semitones: 5.0,
-        bandpass: Some((1_600.0, 0.3)),
-        gain: 1.15,
-        ..DEFAULT
-    },
-    VoicePreset {
         id: "extraterestru",
         name: "Extraterestru",
         description: "modulatie inelara rapida peste o voce usor ridicata",
