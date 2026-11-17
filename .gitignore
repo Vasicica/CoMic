@@ -16,6 +16,9 @@ captures/
 # Configurare de compilare specifica fiecarui calculator
 windows/.cargo/config.toml
 
+# Node (package.json din radacina exista doar pentru eas-cli)
+node_modules/
+
 # Linia "build/" de mai sus e pentru folderul de compilare al Gradle, dar
 # inghite si .eas/build/, unde stau pasii de compilare din cloud. Aceia
 # trebuie sa ajunga in depozit: EAS compileaza din git, nu din ce e pe disc.
