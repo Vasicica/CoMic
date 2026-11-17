@@ -13,52 +13,57 @@ Captura ruleaza intr-un serviciu in prim-plan, deci merge si cu ecranul stins.
 Notificarea permanenta nu e un capriciu: din Android 9, o aplicatie trimisa in
 fundal pierde microfonul in cateva secunde fara ea.
 
-## Compilare in cloud, cu EAS (fara Android Studio)
+## Compilare locala
 
-Daca ai `eas-cli` si un cont Expo, APK-ul se face pe serverele lor si nu-ti mai
-trebuie nimic instalat local:
+Asta e calea care merge si e cea rapida: o schimbare ajunge pe telefon in
+vreo douazeci de secunde.
+
+Ai nevoie de trei lucruri: **JDK 17**, **uneltele Android de linie de
+comanda** si **Gradle**. Pe calculatorul pe care s-a scris aplicatia stau pe
+`E:/android-tools`, iar `local.properties` (care nu se comite, fiind al
+masinii) arata unde e SDK-ul:
+
+    sdk.dir=E:/android-tools/sdk
+
+Pachetele din SDK: `platform-tools` (acolo e `adb`), `platforms/android-35` si
+`build-tools/35.0.0`. Atentie la nume — uneltele noi le scriu cu bara oblica,
+nu cu punct-si-virgula ca vechiul `sdkmanager`, care e acum invechit si
+inlocuit de programul `android`.
+
+Wrapperul (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`) e in
+depozit, deci cine cloneaza nu are nevoie de un Gradle instalat: wrapperul si-l
+aduce singur, in versiunea scrisa in `gradle-wrapper.properties`.
+
+## Compilare in cloud, cu EAS
+
+**Nu merge deocamdata.** E pregatita, dar se opreste; vezi mai jos de ce.
+Pentru lucru de zi cu zi foloseste compilarea locala, care e si mult mai
+rapida: EAS a stat 69 de minute la coada inainte sa inceapa.
 
     eas login
     eas init          # o singura data: scrie projectId in app.json
     npm run apk       # porneste compilarea
 
 Configuratia e in `.eas/build/android-apk.yml`, iar profilul in `eas.json`.
+EAS compileaza din ce e **comis in git**, nu din ce e pe disc.
+
+**Ce mai lipseste.** Primul pas al configuratiei tipareste ce unelte are
+imaginea EAS, si de-acolo s-a aflat: imaginea are **Java 11**, iar proiectul
+cere Java 17. Se alege alta imagine din `eas.json`, prin campul `image` al
+profilului. Wrapperul, cealalta piedica, a fost intre timp adus in depozit.
 
 **Foloseste `npm run apk`, nu `eas build` direct.** Comanda directa se opreste
 cu `Could not read applicationId from Android project`: eas-cli vede folderul
-`android/` si caută identificatorul aplicatiei cu expresia
+`android/` si cauta identificatorul aplicatiei cu expresia
 `/applicationId ['"](.*)['"]/` — spatiu, apoi ghilimea, adica sintaxa Groovy.
 Noi scriem Kotlin DSL, unde semnul egal e obligatoriu, deci expresia nu
 potriveste nimic. `tools/eas_apk.mjs` citeste identificatorul din Gradle si il
 da mai departe prin variabila de mediu pe care eas-cli o verifica inaintea
-citirii. Nu e scris de mana nicaieri, deci nu poate rămâne in urma.
+citirii.
 
 **Nu e calea obisnuita a EAS.** Exemplul oficial trece prin `eas/prebuild`,
 care genereaza folderul `android/` dintr-un proiect React Native — adica ar
-rescrie exact munca de aici. Noi folosim EAS doar ca masina de compilare: ia
-codul din git, cheama Gradle, intoarce APK-ul. Primul pas al configuratiei
-tipareste ce unelte are imaginea, ca o eroare sa se vada la vedere.
-
-EAS compileaza din ce e **comis in git**, nu din ce e pe disc: ce n-ai comis nu
-ajunge in APK.
-
-## Compilare locala
-
-Codul se compileaza si local, dar Android nu merge fara uneltele lui. Ai nevoie
-de **una** din cele doua variante:
-
-**Simpla — Android Studio** (vreo 1,5 GB plus 5-8 GB de SDK): se descarca de la
-developer.android.com/studio, deschizi folderul `android/` si apesi Sync.
-Studio aduce singur JDK-ul, SDK-ul si Gradle.
-
-**Slaba — numai linia de comanda** (vreo 2-3 GB): un JDK 17 si
-`commandlinetools` din aceeasi pagina, apoi
-`sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"`.
-
-Fisierele `gradlew`, `gradlew.bat` si `gradle/wrapper/gradle-wrapper.jar` nu
-sunt aici (primele doua sunt scripturi, al treilea e binar). Android Studio le
-reface la prima sincronizare; de la linia de comanda, `gradle wrapper` face
-acelasi lucru odata ce ai Gradle.
+rescrie exact munca de aici. Noi folosim EAS doar ca masina de compilare.
 
 ## Cum se compileaza si se instaleaza
 
