@@ -609,6 +609,23 @@ render();
     }, TUNE_MS);
   });
 
+  // ---- lucrurile care ajung la motor numai la pornire ----
+  // Dispozitivul de iesire, portul si marimea rezervei se trimit o singura
+  // data, in cererea de start: motorul nu are comanda care sa le mute din
+  // mers, fiindca toate trei inseamna alt fir de sunet. Fara ce urmeaza, le
+  // schimbai in timp ce mergea si nu se intampla nimic -- interfata iti
+  // arata o alegere care nu avusese loc.
+  //
+  // Repornirea taie sunetul pentru o clipa. E mai bine decat o minciuna.
+  const START_ONLY = ['dev', 'port', 'buf'];
+  const reporneste = async () => {
+    if (!live.running) return;
+    live.error = null;
+    await send('stop');
+    await send('start', { request: startRequest() });
+  };
+  START_ONLY.forEach((id) => $('#' + id).addEventListener('change', reporneste));
+
   // ---- citirea starii ----
   // Singurul loc din fereastra care afla ce face motorul.
   const paintMeter = (level) => {
