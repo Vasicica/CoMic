@@ -1,0 +1,16 @@
+# gradlew e un script de shell care ruleaza pe Linux (pe serverele de
+# compilare). Daca ajunge in depozit cu sfarsituri de linie Windows, Linux
+# citeste "#!/bin/sh\r" si raspunde "bad interpreter" -- o eroare care nu
+# seamana deloc cu pricina ei. Asa ca ii fixam sfarsiturile aici.
+gradlew         text eol=lf
+
+# Perechea lui de Windows are nevoie de contrariul: un .bat cu LF se poate
+# purta ciudat in cmd.exe.
+*.bat           text eol=crlf
+
+# Binarele nu se ating niciodata.
+*.jar           binary
+*.keystore      binary
+*.apk           binary
+*.png           binary
+*.wav           binary
