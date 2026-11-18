@@ -42,10 +42,12 @@ Optiuni:
                      mai mic = latenta mai mica, mai mare = rezista la retea slaba
   --mix <0-100>      cat de expus e efectul, in procente (implicit 100)
                      0 = numai vocea ta, 50 = jumatate-jumatate, 100 = numai efectul
-  --low-cut <HZ>     taie sub frecventa data (bubuit, vant) — incearca 100-300
-  --high-cut <HZ>    taie peste frecventa data (sasait, ascutis) — incearca 3000-8000
+  --low-cut <HZ>     taie sub frecventa data (bubuit, vant), incearca 100-300
+  --high-cut <HZ>    taie peste frecventa data (sasait, ascutis), incearca 3000-8000
   --pitch <SEMITON>  inlocuieste inaltimea vocii alese, de la -12 la +12
   --drive <0-10>     inlocuieste distorsiunea vocii alese
+  --wobble <0-100>   tremurul vocii, in procente (0 = fara)
+  --metal <0-200>    sunetul metalic, in Hz (0 = fara)
   --list-devices     afiseaza dispozitivele de redare si iese
   --list-inputs      afiseaza microfoanele si iese
   --list-voices      afiseaza vocile disponibile si iese
@@ -105,6 +107,14 @@ fn parse_options() -> Result<Options, String> {
                 options.voice_settings.drive =
                     Some(value()?.parse().map_err(|_| "drive invalid".to_string())?)
             }
+            "--wobble" => {
+                let percent: f32 = value()?.parse().map_err(|_| "wobble invalid".to_string())?;
+                options.voice_settings.wobble = Some(percent / 100.0);
+            }
+            "--metal" => {
+                options.voice_settings.metal_hz =
+                    Some(value()?.parse().map_err(|_| "metal invalid".to_string())?)
+            }
             "--list-devices" => options.list_devices = true,
             "--list-inputs" => options.list_inputs = true,
             "--list-voices" => options.list_voices = true,
@@ -147,11 +157,7 @@ fn main() {
     if options.list_voices {
         println!("Voci disponibile:");
         for preset in effects::PRESETS {
-            let tier = if preset.free {
-                "proba gratuita"
-            } else {
-                "versiune platita"
-            };
+            let tier = if preset.free { "gratuita" } else { "Pro" };
             println!(
                 "  {:<14} {:<14} {} ({tier})",
                 preset.id, preset.name, preset.description

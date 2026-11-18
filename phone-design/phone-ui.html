@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoMic phone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens — aceleasi ca design/ (PC), vezi README.md ===== */
+:root{
+  --bg:#0A0A0A; --bg-deep:#050505; --bar:#080808;
+  --surface:#101010; --surface-2:#121212; --seg-on:#1E1E1E; --input:#0A0A0A;
+  --border:#1C1C1C; --border-soft:#161616; --border-strong:#262626; --line:#191919;
+  --text:#EDEDED; --text-strong:#F5F5F5; --muted:#8F8F8F; --faint:#7A7A7A; --dim:#A3A3A3; --body:#D4D4D4;
+  --accent:#818CF8; --accent-ink:#0A0A0A;
+  --ok:#4ADE80; --pro:#FBBF24;
+  --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:18px; --r-phone:36px;
+  --font:Inter,system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px 0;background:var(--bg-deep);font-family:var(--font);color:var(--text);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--dim)}
+
+.phone{width:390px;height:844px;background:var(--bg);border:1px solid #1F1F1F;border-radius:var(--r-phone);overflow:hidden;display:flex;flex-direction:column}
+.appbar{height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:12px 20px 0}
+.brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.pro-badge{display:flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;background:rgba(251,191,36,.12);color:var(--pro);font-size:11px;font-weight:700;letter-spacing:.06em}
+.get-pro{height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid #2A2A2A;background:var(--surface-2);color:var(--pro);font-size:12px;font-weight:600}
+main{flex:1;min-height:0;overflow-y:auto;padding:8px 20px 24px;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.stack{display:flex;flex-direction:column;gap:18px}
+.col{display:flex;flex-direction:column;gap:10px}
+h1{margin:4px 0 0;font-size:24px;font-weight:600;letter-spacing:-.02em}
+.sub{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:0 2px}
+.card{padding:16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border)}
+.hint{font-size:12px;color:var(--faint);line-height:1.45;padding:0 2px}
+
+/* Segmented control */
+.seg{display:grid;gap:4px;padding:4px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border)}
+.seg.sm{padding:3px;border-radius:10px;background:var(--input)}
+.seg button{height:40px;display:flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:13px;font-weight:500;transition:background .2s,color .2s}
+.seg.sm button{height:34px;border-radius:7px;font-size:12.5px}
+.seg button[aria-checked=true]{background:var(--seg-on);color:var(--text-strong)}
+
+/* Big button */
+.hero{display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0 4px}
+.ring{width:212px;height:212px;border-radius:50%;display:grid;place-items:center;transition:background .3s}
+.ring>div{width:186px;height:186px;border-radius:50%;display:grid;place-items:center;transition:background .3s}
+.big{width:160px;height:160px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;border:1px solid var(--border-strong);background:#141414;color:var(--accent);box-shadow:0 20px 50px -20px rgba(129,140,248,.45);transition:all .3s}
+.hero.waiting .ring{background:rgba(129,140,248,.06);animation:pulse 1.6s ease-in-out infinite}
+.hero.waiting .ring>div{background:rgba(129,140,248,.12)}
+.hero.waiting .big{border-color:var(--accent);box-shadow:0 0 0 6px rgba(129,140,248,.12)}
+.hero.live .ring{background:rgba(74,222,128,.06)}
+.hero.live .ring>div{background:rgba(74,222,128,.12)}
+.hero.live .big{border-color:rgba(74,222,128,.6);background:rgba(74,222,128,.14);color:var(--ok);box-shadow:0 0 0 6px rgba(74,222,128,.08),0 24px 60px -18px rgba(74,222,128,.5)}
+.hero.muted .big{border-color:#333;background:#1A1A1A;color:var(--dim);box-shadow:none}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.hero-t{font-size:18px;font-weight:600;letter-spacing:-.01em;text-align:center}
+.hero-s{font-size:13px;color:var(--muted);max-width:300px;line-height:1.45;text-align:center;margin-top:4px}
+
+.meter{height:36px;display:flex;align-items:center;gap:3px;padding:0 4px}
+.meter i{flex:1;border-radius:2px;background:rgba(74,222,128,.75);transition:height .12s}
+.meter i.peak{background:var(--pro)}
+.meter.off i{background:#1F1F1F;height:8%!important}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{padding:12px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.stat small{font-size:11px;color:var(--faint)}
+.stat b{font-size:14px;font-weight:600}
+.mono{font-family:var(--mono)}
+.voice-row{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border);text-align:left}
+.voice-row img,.voice-row .ph{width:44px;height:44px;border-radius:10px;object-fit:cover;background:#181818;display:grid;place-items:center;color:var(--dim)}
+.voice-row span.t{flex:1;display:flex;flex-direction:column;gap:2px}
+.voice-row small{font-size:11px;color:var(--faint)}
+.btn{height:48px;border-radius:var(--r-md);border:1px solid #2A2A2A;background:transparent;font-size:14px;font-weight:600}
+.btn.fill{height:46px;background:var(--surface-2);font-size:13.5px}
+.btn-sm{height:34px;padding:0 14px;border-radius:9px;border:0;background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:600}
+.btn-xs{height:30px;padding:0 12px;border-radius:var(--r-sm);border:1px solid #2A2A2A;background:transparent;font-size:12px;font-weight:600}
+
+/* Wi-Fi address */
+.addr{display:flex;flex-direction:column;gap:10px}
+.addr .row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.addr .ip{display:flex;align-items:baseline;gap:6px}
+.addr .ip b{font:600 30px var(--mono);letter-spacing:-.02em}
+.addr .ip span{font:500 14px var(--mono);color:var(--faint)}
+.addr.waiting .ip b{color:var(--accent)}
+.addr .code{padding-top:10px;border-top:1px solid #1A1A1A}
+.addr .code b{font:600 15px var(--mono);letter-spacing:.12em;color:var(--text)}
+.device{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border)}
+.device .ic{width:36px;height:36px;border-radius:10px;background:#181818;border:1px solid #242424;display:grid;place-items:center;color:var(--dim)}
+.device .t{flex:1;display:flex;flex-direction:column;gap:2px}
+.device .t b{font-size:14px}
+.device .t small{font-size:12px;color:var(--faint)}
+.device.dim .t b{color:var(--dim)}
+.status{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border);font-size:13px;font-weight:500;color:var(--dim)}
+.status.ok{color:var(--ok);background:rgba(74,222,128,.07);border-color:rgba(74,222,128,.25)}
+.status span:first-child{display:flex;align-items:center;gap:8px}
+.status span:first-child::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.status small{font-size:12px;color:var(--faint);font-weight:400}
+.radio{display:flex;gap:12px;padding:14px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border);text-align:left;transition:border-color .2s,box-shadow .2s}
+.radio[aria-checked=true]{border-color:var(--accent);box-shadow:0 0 0 3px rgba(129,140,248,.1)}
+.radio .dot{flex-shrink:0;width:20px;height:20px;margin-top:1px;border-radius:50%;border:2px solid #3A3A3A;display:grid;place-items:center}
+.radio[aria-checked=true] .dot{border-color:var(--accent)}
+.radio[aria-checked=true] .dot::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.radio b{display:block;font-size:14px;margin-bottom:4px}
+.radio span.d{font-size:12.5px;color:var(--muted);line-height:1.45}
+.warn{display:flex;gap:10px;padding:12px 14px;border-radius:var(--r-md);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.18);font-size:12.5px;color:var(--body);line-height:1.45}
+
+/* Effects */
+.upsell{padding:20px;border-radius:var(--r-xl);background:#111;border:1px solid rgba(251,191,36,.28);display:flex;flex-direction:column;gap:14px}
+.upsell .k{display:flex;align-items:center;gap:8px;color:var(--pro);font-size:12px;font-weight:700;letter-spacing:.06em}
+.upsell h2{margin:0;font-size:20px;font-weight:600;letter-spacing:-.02em;line-height:1.25}
+.perk{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--body)}
+.perk i{width:18px;height:18px;border-radius:50%;background:rgba(74,222,128,.14);color:var(--ok);display:grid;place-items:center}
+.buy{height:50px;border-radius:var(--r-md);border:0;background:var(--pro);color:#0A0A0A;font-size:15px;font-weight:700}
+.upsell .foot{display:flex;justify-content:space-between;font-size:12px;color:var(--faint)}
+.fx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fx{position:relative;padding:0;text-align:left;border-radius:var(--r-lg);overflow:hidden;background:var(--surface);border:1px solid var(--border);transition:border-color .25s,box-shadow .25s,transform .15s}
+.fx:active{transform:scale(.97)}
+.fx[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 10px 30px -10px rgba(129,140,248,.7)}
+.fx.locked{opacity:.55}
+.fx.locked img{filter:grayscale(.6)}
+.fx .art{position:relative;aspect-ratio:4/3;background:#0C0C0C;display:grid;place-items:center;color:var(--dim);overflow:hidden}
+.fx .art img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block}
+.fx .lock{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:7px;background:rgba(10,10,10,.75);color:var(--pro);display:grid;place-items:center}
+.fx .chk{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.fx .free{position:absolute;top:8px;left:8px;height:22px;padding:0 7px;border-radius:7px;background:rgba(10,10,10,.75);color:var(--ok);font-size:10px;font-weight:700;letter-spacing:.05em;display:flex;align-items:center}
+.tune{padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
+.tune .top{display:flex;align-items:center;justify-content:space-between}
+.tune .top small{display:block;font-size:11px;color:var(--faint)}
+.tune .top b{font-size:15px}
+.tune .k{display:flex;flex-direction:column;gap:4px}
+.tune .k .head{display:flex;justify-content:space-between;font-size:13px;font-weight:500}
+.tune .k .head output{font:12px var(--mono);color:var(--dim)}
+.tune.locked .k{opacity:.45}
+.lockpill{display:flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:7px;background:rgba(251,191,36,.12);color:var(--pro);font-size:10.5px;font-weight:700;letter-spacing:.05em}
+select.field{width:auto;text-align:left;font-family:var(--font)}
+.fx .meta{display:flex;flex-direction:column;gap:2px;padding:9px 11px 11px}
+.fx .meta b{font-size:14px}
+.fx .meta span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Settings */
+.group{border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border);padding:0 16px}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.setting:last-child{border-bottom:0}
+.setting.v{flex-direction:column;align-items:stretch;gap:10px}
+.setting .t{display:flex;flex-direction:column;gap:3px}
+.setting .t b{font-size:14px;font-weight:500}
+.setting .t small{font-size:12px;color:var(--faint);line-height:1.4}
+.setting .t small.ok{color:var(--ok)}
+.setting .t small.pro{color:var(--pro)}
+.setting .head{display:flex;justify-content:space-between;font-size:14px;font-weight:500}
+.setting .head span{font:12px var(--mono);color:var(--dim)}
+.switch{flex-shrink:0;width:44px;height:26px;border-radius:999px;border:0;padding:3px;background:#2A2A2A;display:flex;transition:background .2s}
+.switch::after{content:"";width:20px;height:20px;border-radius:50%;background:#F5F5F5;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .2s}
+.switch[aria-checked=true]{background:var(--accent)}
+.switch[aria-checked=true]::after{transform:translateX(18px)}
+.field{width:92px;height:34px;padding:0 10px;border-radius:9px;border:1px solid var(--border-strong);background:var(--input);color:var(--text);font:13px var(--mono);text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.link{display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line);color:var(--text);text-decoration:none;font-size:14px}
+.link:last-child{border-bottom:0}
+.link span{color:var(--faint)}
+
+/* Tab bar */
+.tabbar{height:78px;flex-shrink:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 12px 18px;border-top:1px solid var(--border-soft);background:var(--bar)}
+.tabbar button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;background:transparent;color:var(--faint);font-size:11px;font-weight:500}
+.tabbar button .pill{width:56px;height:30px;border-radius:999px;display:grid;place-items:center;transition:background .2s}
+.tabbar button[aria-current=page]{color:var(--text-strong)}
+.tabbar button[aria-current=page] .pill{background:rgba(129,140,248,.18)}
+.tabbar .tag{position:absolute;top:2px;right:22%;font-size:8.5px;font-weight:700;letter-spacing:.05em;padding:2px 5px;border-radius:5px;background:rgba(251,191,36,.14);color:var(--pro)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></symbol>
+  <symbol id="mic-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5a3 3 0 0 1 6 0v4M15 12.5V11M5 11a7 7 0 0 0 11.5 5.4M19 11a7 7 0 0 1-.6 2.8M12 18v4M8 22h8M3 3l18 18"/></symbol>
+  <symbol id="wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0M12 19h.01"/></symbol>
+  <symbol id="usb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14M9 6l3-3 3 3M7 9v3l5 3 5-3V9"/><circle cx="12" cy="19" r="2"/></symbol>
+  <symbol id="bt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></symbol>
+  <symbol id="pc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="laptop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9H4zM2 18h20"/></symbol>
+  <symbol id="sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3l1.8 4.2L17 9l-4.2 1.8L11 15l-1.8-4.2L5 9l4.2-1.8z"/><path d="M18.5 14.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/></symbol>
+  <symbol id="sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+  <symbol id="crown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L19 7"/></symbol>
+  <symbol id="mega" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4a1 1 0 0 0 1 1h3l9 5V4L7 9H4a1 1 0 0 0-1 1zM7 15l1 5h3"/><path d="M19.5 9a4 4 0 0 1 0 6"/></symbol>
+  <symbol id="info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></symbol>
+</defs></svg>
+
+<div class="phone">
+  <header class="appbar">
+    <div class="brand"><span class="logo"><svg width="16" height="16"><use href="#mic"/></svg></span>CoMic</div>
+    <div id="plan"></div>
+  </header>
+  <main id="main"></main>
+  <nav class="tabbar" aria-label="Main" id="tabbar"></nav>
+</div>
+
+<script>
+// ===== Date (id-urile vocilor = windows/src/effects/voices.rs) =====
+// t = valorile de pornire ale cursoarelor Pro: [pitch, tone(formant), drive, wobble %, metal Hz]
+// = PRESETS din voices.rs (formant e camp nou, valori propuse).
+const VOICES = [
+  { id: 'normal',        name: 'Normal',    desc: 'Your voice, untouched',      free: true, icon: 'mic', t: [0, 0, 0, 0, 0] },
+  { id: 'pirat',         name: 'Pirate',    desc: 'Deep, rough, a bit of grit', free: true, t: [-4, -1, 2.5, 0, 0] },
+  { id: 'mosneag',       name: 'Grandpa',   desc: 'Lower, gentle tremble',      free: true, t: [-2, 1, 1.2, 35, 0] },
+  { id: 'robot',         name: 'Robot',     desc: 'Classic metallic ring',      t: [0, 0, 1.5, 0, 55] },
+  { id: 'radio',         name: 'Radio',     desc: 'Walkie-talkie',              t: [0, 0, 3, 0, 0] },
+  { id: 'megafon',       name: 'Megaphone', desc: 'Loud and distorted',         icon: 'mega', t: [0, 0, 6, 0, 0] },
+  { id: 'dinozaur',      name: 'Dinosaur',  desc: 'Way down, with a growl',     t: [-9, -3, 3.5, 25, 0] },
+  { id: 'demon',         name: 'Demon',     desc: 'Deep and distorted',         t: [-7, -2, 5, 0, 0] },
+  { id: 'veverita',      name: 'Squirrel',  desc: 'Pitched way up',             t: [7, 3, 0, 0, 0] },
+  { id: 'extraterestru', name: 'Alien',     desc: 'Fast metallic ring',         t: [2, 0, 0, 0, 140] },
+];
+const KNOBS = [
+  { key: 'pitch',   label: 'Pitch',          min: -12, max: 12,  step: 1,   out: x => (x > 0 ? '+' : '') + x + ' st' },
+  { key: 'formant', label: 'Tone (formant)', min: -6,  max: 6,   step: 0.5, out: x => (x > 0 ? '+' : '') + x },
+  { key: 'drive',   label: 'Grit',           min: 0,   max: 10,  step: 0.5, out: x => Number(x).toFixed(1) },
+  { key: 'wobble',  label: 'Wobble',         min: 0,   max: 100, step: 1,   out: x => x + '%' },
+  { key: 'metal',   label: 'Metal',          min: 0,   max: 200, step: 5,   out: x => +x ? x + ' Hz' : 'Off' },
+];
+const canUse = v => S.pro || v.free;
+// valoarea unui cursor: ce a mutat utilizatorul pentru vocea asta, altfel preset-ul
+const knobVal = (v, i) => (S.tune[v.id] || {})[KNOBS[i].key] ?? v.t[i];
+const imgOf = v => v.icon ? null : `assets/avatars/${v.id}.jpg`;
+const LAT = { wifi: '62 ms', usb: '31 ms', bt: '140 ms' };
+const METHOD_NAME = { wifi: 'Wi-Fi', usb: 'USB', bt: 'Bluetooth' };
+const QUALITY = { low: '24 kbps', std: '48 kbps', high: '96 kbps' };
+
+// ===== Stare =====
+// phase: idle -> waiting (telefonul asculta pe 45678) -> live (PC conectat)
+const S = {
+  screen: 'connect', phase: 'idle', method: 'wifi', muted: false, pro: false,
+  voice: 'pirat', usbMode: 'adb', mic: 'bottom', quality: 'std', gain: 1.0,
+  noise: true, agc: false, reconnect: true, pairing: true, calls: true, screenOff: true, notif: true,
+  tune: {},          // { [voiceId]: { pitch, formant, drive, wobble, metal } } — se tine minte per voce
+  lang: 'system',
+};
+const set = patch => { Object.assign(S, patch); render(); };
+const ic = (id, s = 18) => `<svg width="${s}" height="${s}"><use href="#${id}"/></svg>`;
+
+// ===== Ecrane =====
+function connectScreen() {
+  const live = S.phase === 'live';
+  const seg = ['wifi', 'usb', 'bt'].map(m =>
+    `<button role="radio" aria-checked="${S.method === m}" data-act="method" data-v="${m}">${ic(m, 16)}${METHOD_NAME[m]}</button>`).join('');
+
+  let cls = S.phase, label, title, sub;
+  if (S.phase === 'idle') {
+    label = 'Start'; title = 'Ready to stream';
+    sub = { wifi: 'Tap Start, then connect from CoMic on your PC.', usb: 'Plug the phone into your PC, then tap Start.', bt: 'Tap Start, then pick this phone on your laptop.' }[S.method];
+  } else if (S.phase === 'waiting') {
+    label = 'Stop'; title = 'Waiting for your PC…';
+    sub = { wifi: 'Listening on port 45678.', usb: 'Listening over the USB cable.', bt: 'Visible to paired PCs.' }[S.method];
+  } else if (S.muted) {
+    cls = 'live muted'; label = 'Muted'; title = 'Microphone muted'; sub = 'Tap to unmute. DESKTOP-VASIL hears silence.';
+  } else {
+    label = 'Live'; title = 'Connected to DESKTOP-VASIL'; sub = 'Tap the button to mute. Keeps streaming with the screen off.';
+  }
+
+  const hero = `
+    <div class="hero ${cls}">
+      <div class="ring"><div><button class="big" data-act="main" aria-label="${label}">${ic(live && S.muted ? 'mic-off' : 'mic', 40)}${label}</button></div></div>
+      <div><div class="hero-t">${title}</div><div class="hero-s">${sub}</div></div>
+    </div>`;
+
+  let details = '';
+  if (live) {
+    const v = VOICES.find(x => x.id === S.voice);
+    const img = imgOf(v);
+    details = `
+      <div class="col">
+        <div class="meter ${S.muted ? 'off' : ''}" id="meter" aria-hidden="true">${'<i></i>'.repeat(32)}</div>
+        <div class="stats">
+          <div class="stat"><small>Latency</small><b class="mono">${LAT[S.method]}</b></div>
+          <div class="stat"><small>Via</small><b>${METHOD_NAME[S.method]}</b></div>
+          <div class="stat"><small>Quality</small><b class="mono">${QUALITY[S.quality]}</b></div>
+        </div>
+        <button class="voice-row" data-act="screen" data-v="effects">
+          ${img ? `<img src="${img}" alt="">` : `<span class="ph">${ic('mic', 20)}</span>`}
+          <span class="t"><small>Voice on PC</small><b>${v.name}</b></span>
+          <b style="font-size:12px;color:var(--accent)">Change</b>
+        </button>
+        <button class="btn" data-act="stop">Disconnect</button>
+      </div>`;
+  } else if (S.method === 'wifi') {
+    details = `
+      <div class="col">
+        <div class="card addr ${S.phase}">
+          <div class="row"><span>Type this on your PC</span><span style="color:var(--faint)">Wi-Fi “Home_5G”</span></div>
+          <div class="ip"><b>192.168.1.3</b><span>:45678</span></div>
+          <div class="row code"><span>Pairing code</span><b>482 913</b></div>
+        </div>
+        <span class="label" style="padding-top:4px">PCs on this network</span>
+        <div class="device"><span class="ic">${ic('pc')}</span><span class="t"><b>DESKTOP-VASIL</b><small class="mono">192.168.1.10</small></span><button class="btn-sm" data-act="live">Connect</button></div>
+        <span class="hint">Not listed? Some routers block discovery. Type the address above in CoMic on your PC.</span>
+      </div>`;
+  } else if (S.method === 'usb') {
+    const modes = [
+      ['adb', 'USB debugging', 'Developer options → USB debugging. Most reliable; CoMic on PC does the rest.'],
+      ['tether', 'USB tethering', 'No developer options needed. Phone shares its connection over the cable.'],
+    ].map(([id, t, d]) => `<button class="radio" role="radio" aria-checked="${S.usbMode === id}" data-act="usbMode" data-v="${id}"><span class="dot"></span><span><b>${t}</b><span class="d">${d}</span></span></button>`).join('');
+    details = `
+      <div class="col">
+        <div class="status ${S.phase === 'idle' ? '' : 'ok'}"><span>${S.phase === 'idle' ? 'Cable not detected' : 'Cable connected'}</span><small>Best latency, 25 to 40 ms</small></div>
+        ${modes}
+        <button class="btn fill">${S.usbMode === 'adb' ? 'Open developer options' : 'Open tethering settings'}</button>
+      </div>`;
+  } else {
+    details = `
+      <div class="col">
+        <span class="label">Paired PCs</span>
+        <div class="device"><span class="ic">${ic('laptop')}</span><span class="t"><b>VASIL-LAPTOP</b><small>Paired · in range</small></span><button class="btn-sm" data-act="live">Connect</button></div>
+        <div class="device dim"><span class="ic" style="color:#6B6B6B">${ic('pc')}</span><span class="t"><b>DESKTOP-VASIL</b><small>Paired · not in range</small></span></div>
+        <div class="warn"><span style="color:var(--pro)">${ic('info', 16)}</span><span>Pair the phone in Windows Bluetooth settings first. Bluetooth has the highest latency (100 to 200 ms), so use it mainly on laptops.</span></div>
+        <button class="btn fill">Open Bluetooth settings</button>
+      </div>`;
+  }
+  return `<div class="stack"><div class="seg" role="radiogroup" aria-label="Connection method" style="grid-template-columns:repeat(3,minmax(0,1fr))">${seg}</div>${hero}${details}</div>`;
+}
+
+function effectsScreen() {
+  const live = S.phase === 'live';
+  const sub = S.pro
+    ? (live ? 'Live on DESKTOP-VASIL · tap to switch instantly' : 'Tap a voice and it plays on your PC right away')
+    : 'Pirate and Grandpa are free. Tap a voice and it plays on your PC.';
+  const upsell = S.pro ? '' : `
+    <div class="upsell">
+      <div class="k">${ic('crown', 14)}COMIC PRO</div>
+      <h2>Every voice, tuned your way</h2>
+      <div class="col" style="gap:8px">
+        ${['All 9 voices, more with updates', 'Fine-tune pitch, tone, grit and more', 'One purchase for phone and PC']
+          .map(t => `<span class="perk"><i>${ic('check', 11)}</i>${t}</span>`).join('')}
+      </div>
+      <button class="buy" data-act="unlock">Get Pro · $1.99/month or $9.99 once</button>
+      <div class="foot"><span>Cancel anytime in Google Play.</span><a href="#">Restore purchase</a></div>
+    </div>`;
+  const offline = !live ? `<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px"><span style="font-size:12.5px;color:var(--dim)">Connect to a PC to hear the voice live.</span><button class="btn-xs" data-act="screen" data-v="connect">Connect</button></div>` : '';
+
+  const cv = VOICES.find(x => x.id === S.voice);
+  const tune = `
+    <div class="tune ${S.pro ? '' : 'locked'}">
+      <div class="top"><span><small>Fine-tune</small><b>${cv.name}</b></span>
+        ${S.pro ? '<button class="btn-xs" data-act="resetTune">Reset</button>' : `<span class="lockpill">${ic('lock', 10)}PRO</span>`}</div>
+      ${KNOBS.map((k, i) => `
+        <div class="k"><span class="head"><label for="k-${k.key}">${k.label}</label><output id="k-${k.key}-out">${k.out(knobVal(cv, i))}</output></span>
+          <input id="k-${k.key}" data-knob="${i}" type="range" min="${k.min}" max="${k.max}" step="${k.step}" value="${knobVal(cv, i)}" ${S.pro ? '' : 'disabled'}></div>`).join('')}
+      <span class="hint">${S.pro ? 'Sliders stay where you leave them. Changes play on your PC instantly.' : 'Pro lets you drag every slider freely and save your own voice.'}</span>
+    </div>`;
+
+  const cards = VOICES.map(v => {
+    const locked = !canUse(v);
+    const img = imgOf(v);
+    return `<button class="fx ${locked ? 'locked' : ''}" aria-pressed="${S.voice === v.id}" ${locked ? 'aria-disabled="true"' : ''} data-act="voice" data-v="${v.id}">
+      <div class="art">${img ? `<img src="${img}" alt="">` : ic(v.icon, 34)}
+        ${locked ? `<span class="lock">${ic('lock', 12)}</span>` : ''}
+        ${!S.pro && v.free && v.id !== 'normal' ? '<span class="free">FREE</span>' : ''}
+        ${S.voice === v.id ? `<span class="chk">${ic('check', 13)}</span>` : ''}</div>
+      <div class="meta"><b>${v.name}</b><span>${v.desc}</span></div></button>`;
+  }).join('');
+  return `<div class="stack" style="gap:16px"><div><h1>Voice effects</h1><p class="sub">${sub}</p></div>${upsell}${offline}${tune}<div class="fx-grid">${cards}</div></div>`;
+}
+
+function settingsScreen() {
+  const seg = (key, opts) => `<div class="seg sm" role="radiogroup" style="grid-template-columns:repeat(${opts.length},minmax(0,1fr))">${opts.map(([id, l]) => `<button role="radio" aria-checked="${S[key] === id}" data-act="pick" data-k="${key}" data-v="${id}">${l}</button>`).join('')}</div>`;
+  const tog = (key, label, hint) => `<div class="setting"><span class="t"><b>${label}</b><small>${hint}</small></span><button class="switch" role="switch" aria-checked="${!!S[key]}" aria-label="${label}" data-act="toggle" data-k="${key}"></button></div>`;
+  return `<div class="stack" style="gap:20px">
+    <h1>Settings</h1>
+    <section class="col" style="gap:8px"><span class="label">Audio</span>
+      <div class="group">
+        <div class="setting v"><span class="head">Microphone</span>${seg('mic', [['bottom', 'Bottom'], ['top', 'Top'], ['headset', 'Headset']])}</div>
+        <div class="setting v"><span class="head">Quality<span>Opus · 48 kHz</span></span>${seg('quality', [['low', 'Data saver'], ['std', 'Standard'], ['high', 'High']])}</div>
+        <div class="setting v"><span class="head"><label for="gain">Mic gain</label><span id="gain-out">×${S.gain.toFixed(1)}</span></span><input id="gain" type="range" min="0.5" max="2" step="0.1" value="${S.gain}"></div>
+      </div>
+      <div class="group">${tog('noise', 'Noise suppression', 'Removes fans, keyboard and room hum')}${tog('agc', 'Auto gain', 'Keeps your volume steady')}</div>
+    </section>
+    <section class="col" style="gap:8px"><span class="label">Connection</span>
+      <div class="group">
+        <div class="setting"><label for="port" style="font-size:14px;font-weight:500">Port</label><input id="port" class="field" value="45678" inputmode="numeric"></div>
+        ${tog('reconnect', 'Auto-reconnect', 'Rejoin the last PC when Wi-Fi changes')}
+        ${tog('pairing', 'Require pairing code', 'Encrypted. Nobody else on the Wi-Fi can listen.')}
+        ${tog('calls', 'Pause during calls', 'Resume automatically after a phone call')}
+      </div>
+    </section>
+    <section class="col" style="gap:8px"><span class="label">Background</span>
+      <div class="group">
+        ${tog('screenOff', 'Stream with screen off', 'Keeps the mic alive in your pocket')}
+        ${tog('notif', 'Controls in notification', 'Mute and stop without opening the app')}
+        <div class="setting"><span class="t"><b>Battery optimization</b><small class="ok">Not restricted. Android won’t stop CoMic.</small></span><button class="btn-xs">Check</button></div>
+      </div>
+    </section>
+    <section class="col" style="gap:8px"><span class="label">General</span>
+      <div class="group">
+        <div class="setting"><label for="lang" style="font-size:14px;font-weight:500">Language</label>
+          <select id="lang" class="field">${[['system', 'System default'], ['en', 'English'], ['ro', 'Română'], ['ru', 'Русский'], ['uk', 'Українська'], ['fr', 'Français'], ['es', 'Español'], ['pt', 'Português'], ['de', 'Deutsch'], ['tr', 'Türkçe'], ['pl', 'Polski']]
+            .map(([v, l]) => `<option value="${v}" ${S.lang === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      </div>
+    </section>
+    <section class="col" style="gap:8px"><span class="label">Account</span>
+      <div class="group">
+        <div class="setting"><span class="t"><b>CoMic Pro</b><small class="${S.pro ? 'pro' : ''}">${S.pro ? 'Active · all voices + fine-tuning' : 'Free · mic, all connections, 2 voices'}</small></span><button class="btn-xs" data-act="${S.pro ? '' : 'unlock'}">${S.pro ? 'Manage' : 'Upgrade'}</button></div>
+        <a class="link" href="#">Help &amp; troubleshooting<span>→</span></a>
+        <a class="link" href="#">About CoMic<span class="mono" style="font-size:12px">v0.1 →</span></a>
+      </div>
+    </section>
+  </div>`;
+}
+
+// ===== Render =====
+function render() {
+  document.getElementById('plan').innerHTML = S.pro
+    ? `<span class="pro-badge">${ic('crown', 12)}PRO</span>`
+    : `<button class="get-pro" data-act="screen" data-v="effects">${ic('crown', 12)}Get Pro</button>`;
+  const main = document.getElementById('main');
+  main.innerHTML = { connect: connectScreen, effects: effectsScreen, settings: settingsScreen }[S.screen]();
+  document.getElementById('tabbar').innerHTML = [
+    ['connect', 'Connect', 'mic'], ['effects', 'Effects', 'sparkle'], ['settings', 'Settings', 'sliders'],
+  ].map(([id, l, i]) => `<button data-act="screen" data-v="${id}" ${S.screen === id ? 'aria-current="page"' : ''}><span class="pill">${ic(i, 20)}</span>${l}</button>`).join('');
+  const g = document.getElementById('gain');
+  if (g) g.oninput = e => { S.gain = +e.target.value; document.getElementById('gain-out').textContent = '×' + S.gain.toFixed(1); };
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const { act, v, k } = b.dataset;
+  if (act === 'screen') set({ screen: v });
+  if (act === 'method') set({ method: v, phase: S.phase === 'live' ? 'idle' : S.phase });
+  if (act === 'main') set(S.phase === 'idle' ? { phase: 'waiting' } : S.phase === 'waiting' ? { phase: 'idle' } : { muted: !S.muted });
+  if (act === 'live') set({ phase: 'live', muted: false });
+  if (act === 'stop') set({ phase: 'idle', muted: false });
+  if (act === 'usbMode') set({ usbMode: v });
+  if (act === 'unlock') set({ pro: true, screen: 'effects' });
+  if (act === 'voice' && canUse(VOICES.find(x => x.id === v))) set({ voice: v });
+  if (act === 'resetTune') { delete S.tune[S.voice]; render(); }
+  if (act === 'pick') set({ [k]: v });
+  if (act === 'toggle') set({ [k]: !S[k] });
+});
+
+// Cursoarele Pro: salvam valoarea fara re-randare, ca degetul sa nu piarda cursorul.
+document.addEventListener('input', e => {
+  const i = e.target.dataset.knob;
+  if (i !== undefined) {
+    const k = KNOBS[i];
+    S.tune[S.voice] = Object.assign({}, S.tune[S.voice], { [k.key]: +e.target.value });
+    document.getElementById('k-' + k.key + '-out').textContent = k.out(e.target.value);
+  }
+  if (e.target.id === 'lang') S.lang = e.target.value;
+});
+
+// VU-metru demo — in aplicatie vine din nivelul RMS al AudioRecord
+setInterval(() => {
+  const m = document.getElementById('meter');
+  if (!m || S.muted) return;
+  [...m.children].forEach((b, i) => {
+    const h = Math.max(12, Math.min(98, 25 + 55 * Math.abs(Math.sin(Date.now() / 280 + i / 3)) * Math.random() + 20 * Math.random()));
+    b.style.height = h + '%'; b.classList.toggle('peak', h > 88);
+  });
+}, 120);
+
+render();
+</script>
+</body>
+</html>

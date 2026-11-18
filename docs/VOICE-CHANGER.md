@@ -1,60 +1,63 @@
 # Voice changer — functia care aduce bani
 
-Ideea utilizatorului: doua voci (pirat, mosneag), gratuite doar ca **test** —
-te auzi pe tine cum ai suna. Ca sa le folosesti cu adevarat in Zoom, CS2 sau
-Discord, platesti.
+## Ce s-a decis (actualizat 2026-11-18)
 
-Rationamentul comercial este corect: microfonul este o unealta, iar uneltele
-se cumpara greu. Vocile sunt distractie, iar distractia se cumpara usor —
-mai ales de adolescenti care se glumesc in jocuri.
-
-## Cum se imparte gratuit / platit
-
-| Functie | Gratuit | Platit |
+| Functie | Gratuit | Pro |
 |---|---|---|
-| Microfon, fara limita de timp | da | — |
-| Toate metodele de conectare | da | — |
-| Ascultare de proba a vocilor (te auzi in casti) | da | — |
-| Vocile trimise mai departe in microfonul virtual | nu | da |
-| Voci suplimentare peste cele doua | nu | da |
+| Microfon, fara limita de timp | da | da |
+| Toate metodele de conectare | da | da |
+| Vocile Normal, Pirat, Mosneag, folosite de-adevaratelea (in Discord, CS2...) | da | da |
+| Fine tuning: cat de tare e efectul, taierea basului si a inaltelor | da | da |
+| Restul vocilor (azi 14, mai multe cu actualizarile) | nu | da |
+| Advanced: inaltime, distorsiune, tremur, metal, liber, tinute minte per voce | nu | da |
 
-Diferenta fata de WO Mic este chiar aici: **la noi microfonul este gratuit si
-nelimitat**. Se plateste doar distractia. Asta e si argumentul de marketing,
-si raspunsul la ce l-a enervat pe utilizator la WO Mic.
+- Vocea se schimba **de pe ambele dispozitive**, telefon si PC.
+- Pro se cumpara **numai pe telefon**, prin Google Play Billing. Telefonul anunta PC-ul pe
+  canalul de control (criptat). PC-ul nu are sistem de plata propriu.
+- Diferenta fata de WO Mic ramane argumentul principal: **microfonul e gratuit si nelimitat**.
 
-## Cum se face tehnic
+## Pretul (propunere, de confirmat)
 
-Procesarea sta pe calculator, in Rust, nu pe telefon. Trei motive: calculatorul
-are putere de calcul, aplicatia de telefon ramane simpla, iar vocile noi se
-livreaza printr-o actualizare de program, nu prin magazin.
+Doua produse in Google Play, ca omul sa aleaga:
 
-Lantul devine:
+| Produs | Tip in Play | Pret |
+|---|---|---|
+| CoMic Pro lunar | abonament, se reinnoieste lunar | $1.99 / luna |
+| CoMic Pro pe viata | produs unic (one-time) | $9.99 o data |
 
-    retea -> buffer de jitter -> [efecte] -> microfon virtual
-                                    |
-                                    +------> casti (ascultare de proba)
+De ce ambele: abonamentul aduce venit constant, dar multi oameni refuza din principiu
+abonamentele la unelte (exact motivul pentru care s-a plecat de la WO Mic). Varianta pe
+viata ii prinde pe ei. Google ia o parte din fiecare plata (15% in Moldova si "restul lumii";
+in SUA, UE si UK, din 2026, mai mult la produsele unice). Preturile locale le propune Google
+automat, pe tari.
 
-Nucleul: deplasare de inaltime (pitch shift) si de formanti, independent una de
-alta. Formantii sunt cei care fac diferenta dintre "aceeasi voce accelerata" si
-"alta persoana" — fara ei iese sunet de desene animate.
+Reguli Google pentru abonamente, de respectat in ecranul de plata:
+- pretul exact si perioada ("$1.99 pe luna, se reinnoieste automat") vizibile inainte de plata;
+- buton clar de inchidere ("Nu acum"): aplicatia merge si fara Pro;
+- link spre anulare (Centrul de abonamente Google Play) in Setari › Cont;
+- daca vreodata se da perioada de proba: cat dureaza, cat costa dupa, cum anulezi.
 
-**Pirat**: inaltime cu 4-5 semitonuri in jos, formanti in jos, putina distorsiune
-si o urma de reverberatie de incapere.
-**Mosneag**: inaltime putin in jos, formanti in sus, tremolo lent si putin
-zgomot de respiratie — batranetea se aude ca instabilitate, nu ca inaltime.
+## Vocile si cum se fac
 
-Cost in latenta: 20-30 ms peste lantul existent. Acceptabil in jocuri si
-meeting-uri. Se poate opri complet cand nu e folosit.
+Procesarea sta pe calculator, in Rust (`windows/src/effects`). O voce noua = un preset in
+`voices.rs`, nu cod nou. Motorul are acum: inaltime, filtre (trece-jos, trece-sus, trece-banda),
+modulatie inelara (metal), tremolo, soapta (zgomot care urmareste vocea), distorsiune, ecou.
 
-## De discutat inainte de Faza 3
+Voci adaugate pe 2026-11-18: Pestera, Sub apa, Fantoma, Soapta, Monstru, Urias, Telefon.
+Le lipsesc pozele: deocamdata au iconite.
 
-- **Abonament sau plata unica.** 2.50 EUR/luna este plauzibil, dar o unealta se
-  vinde mai bine la plata unica — iar utilizatorul insusi a plecat de la WO Mic
-  din cauza abonamentului. Varianta mixta: aplicatia gratuita pentru totdeauna,
-  pachetele de voci la plata unica mica.
-- **Public tinta.** Daca produsul este prezentat ca fiind pentru copii, intra sub
-  politica Google Play pentru familii si sub reguli europene stricte de abonament
-  (anulare simpla, drept de retragere 14 zile). Se promoveaza catre "jucatori",
-  nu catre copii.
-- **Folosire abuziva.** Un voice changer poate fi folosit pentru a imita pe
-  cineva. Conditiile de utilizare trebuie sa interzica explicit impersonarea.
+### De ce unele voci nu suna "a personaj"
+
+Motorul de inaltime muta si formantii odata cu tonul (vezi `pitch.rs`). De aceea o voce de
+barbat ridicata suna a veverita, nu a femeie sau a fata din anime. Pentru voci de femeie,
+copil sau anime trebuie separat **timbrul** (formantii) de inaltime: motor spectral, o
+lucrare separata. Pana atunci, raman vocile pe care efectele simple le fac credibil.
+
+Pentru poze: intai asculti vocea gata, apoi faci poza care i se potriveste. Acelasi stil
+pentru toate (bust 3D, fundal negru, personaj centrat, patrat), ca grila sa arate unitar.
+
+## Folosire abuziva
+
+Interdictia de a imita persoane reale, de a insela si de a hartui e scrisa in
+`docs/legal/terms.en.md` si `terms.ro.md` (sectiunea 2). Linkul spre ele sta in Ajutor
+(PC) si in Setari › Cont (telefon). Se promoveaza catre "jucatori", nu catre copii.

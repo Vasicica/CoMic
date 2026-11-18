@@ -100,6 +100,17 @@ h2{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--muted);text-transf
 
 /* Effects grid */
 .fx-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.plan-pro{display:flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:999px;background:rgba(251,191,36,.12);color:var(--warn);font-size:11px;font-weight:700;letter-spacing:.06em}
+.plan-get{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;border:1px solid #2A2A2A;background:#121212;color:var(--warn);font-size:12px;font-weight:600}
+.plan-get:hover{background:#1C1C1C}
+.fx.locked{opacity:.55;cursor:not-allowed}
+.fx.locked img{filter:grayscale(.6)}
+.fx.locked:hover{transform:none}
+.lockpill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;background:rgba(251,191,36,.12);color:var(--warn);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:none}
+.panel.locked .opt{opacity:.45}
+.panel .lock-note{display:none;font-size:12px;color:var(--muted);margin:-4px 0 14px}
+.panel.locked .lock-note{display:block}
+input[type=range]:disabled{cursor:not-allowed}
 .tuning{margin-top:14px}
 .tuning h2{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hint{font-size:11.5px;color:var(--warn);display:none}
@@ -184,6 +195,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <symbol id="i-speaker" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4V5zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L19 7"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></symbol>
   </defs>
 </svg>
 
@@ -206,6 +218,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <button class="tab" role="tab" data-view="help" aria-selected="false"><svg width="16" height="16"><use href="#i-help"/></svg>Help</button>
     <div class="spacer"></div>
     <div class="voice-chip"><span>Voice</span><span id="voice-name">Pirate</span></div>
+    <div id="plan"></div>
   </nav>
 
   <main>
@@ -251,7 +264,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <div class="panel">
           <h2>Audio</h2>
           <div class="opt"><label class="opt-row" for="dev">Output device</label>
-            <select id="dev" class="field"><option>CABLE Input (VB-Audio Virtual Cable)</option><option>Speakers (Realtek Audio) — monitor</option></select>
+            <select id="dev" class="field"><option>CABLE Input (VB-Audio Virtual Cable)</option><option>Speakers (Realtek Audio)</option></select>
             <small>Apps like Discord or CS2 see it as “CABLE Output”.</small></div>
           <div class="opt"><div class="opt-row"><label for="gain">Gain</label><output id="gain-out">×1.0</output></div>
             <input id="gain" type="range" min="0.5" max="2" step="0.1" value="1"></div>
@@ -266,6 +279,13 @@ input[type=range]{accent-color:var(--accent);width:100%}
           <div class="toggle-row"><div><b>Minimize to tray</b><span>Keep running when the window is closed</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Minimize to tray"></button></div>
           <div class="toggle-row"><div><b>Beta updates</b><span>Get new voices and fixes early</span></div><button class="switch" role="switch" aria-checked="false" aria-label="Beta updates"></button></div>
           <div class="port-row"><label for="port">UDP port</label><input id="port" class="field" value="45678"></div>
+          <div class="port-row"><label for="lang">Language</label>
+            <select id="lang" class="field" style="width:auto;text-align:left;font-family:var(--font)">
+              <option value="system">System default</option><option value="en">English</option><option value="ro">Română</option>
+              <option value="ru">Русский</option><option value="uk">Українська</option><option value="fr">Français</option>
+              <option value="es">Español</option><option value="pt">Português</option><option value="de">Deutsch</option>
+              <option value="tr">Türkçe</option><option value="pl">Polski</option>
+            </select></div>
         </div>
       </div>
     </section>
@@ -273,7 +293,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <!-- EFFECTS -->
     <section class="view" id="view-effects" role="tabpanel">
       <div class="head">
-        <div><h1>Voice effects</h1><p class="sub">Applied live to the virtual microphone. Click a voice to switch.</p></div>
+        <div><h1>Voice effects</h1><p class="sub" id="fx-sub">Applied live to the virtual microphone. Click a voice to switch.</p></div>
         <button class="btn-ghost"><svg width="14" height="14"><use href="#i-speaker"/></svg>Test with my voice</button>
       </div>
       <div class="fx-grid" id="fx-grid" role="radiogroup" aria-label="Voice"></div>
@@ -292,14 +312,24 @@ input[type=range]{accent-color:var(--accent);width:100%}
             <input id="hicut" type="range" min="2000" max="20000" step="500" value="20000">
             <small>Removes hiss and harsh sibilance.</small></div>
         </div>
-        <div class="panel">
-          <h2>Advanced<button class="btn-ghost" id="fx-reset" type="button">Reset to voice</button></h2>
+        <div class="panel" id="adv">
+          <h2><span style="display:flex;align-items:center;gap:8px">Advanced<span class="lockpill" id="adv-lock"><svg width="10" height="10"><use href="#i-lock"/></svg>PRO</span></span><button class="btn-ghost" id="fx-reset" type="button">Reset to voice</button></h2>
+          <p class="lock-note">Get Pro in the phone app to unlock these. One purchase works on the PC too.</p>
           <div class="opt"><div class="opt-row"><label for="pitch">Pitch</label><output id="pitch-out">0 st</output></div>
             <input id="pitch" type="range" min="-12" max="12" step="1" value="0">
             <div class="ends"><span>Deeper</span><span>Higher</span></div></div>
+          <div class="opt"><div class="opt-row"><label for="formant">Tone</label><output id="formant-out">0</output></div>
+            <input id="formant" type="range" min="-6" max="6" step="0.5" value="0">
+            <small>Formant. Lower = bigger, darker body; higher = smaller, brighter.</small></div>
           <div class="opt"><div class="opt-row"><label for="drive">Drive</label><output id="drive-out">0.0</output></div>
             <input id="drive" type="range" min="0" max="10" step="0.5" value="0">
             <small>Distortion. Higher is rougher and louder.</small></div>
+          <div class="opt"><div class="opt-row"><label for="wobble">Wobble</label><output id="wobble-out">0%</output></div>
+            <input id="wobble" type="range" min="0" max="100" step="1" value="0">
+            <small>Tremolo. Makes the voice shake, like Grandpa.</small></div>
+          <div class="opt"><div class="opt-row"><label for="metal">Metal</label><output id="metal-out">Off</output></div>
+            <input id="metal" type="range" min="0" max="200" step="5" value="0">
+            <small>Ring modulation. The robot / alien sound.</small></div>
         </div>
       </div>
     </section>
@@ -328,19 +358,29 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
 <script>
 // Voices: id-urile = windows/src/effects/voices.rs (PRESETS). free = acelasi camp ca in Rust.
-// semitones + drive = valorile din PRESETS (windows/src/effects/voices.rs),
-// ca sa stie cursoarele unde sa revina cand schimbi vocea.
+// Valorile de pornire ale cursoarelor = PRESETS din windows/src/effects/voices.rs:
+// semitones -> pitch, drive, tremolo.depth*100 -> wobble, ring_hz -> metal.
+// formant e camp NOU (de adaugat in VoicePreset) — valorile de aici sunt propuneri.
 const VOICES = [
-  { id: 'normal',        name: 'Normal',    desc: 'Your voice, untouched',          free: true, icon: 'i-mic', semitones: 0, drive: 0.0 },
-  { id: 'pirat',         name: 'Pirate',    desc: 'Deep, rough, a bit of grit',     free: true, img: 'assets/avatars/pirat.jpg', semitones: -4, drive: 2.5 },
-  { id: 'mosneag',       name: 'Grandpa',   desc: 'Lower, with a gentle tremble',   free: true, img: 'assets/avatars/mosneag.jpg', semitones: -2, drive: 1.2 },
-  { id: 'robot',         name: 'Robot',     desc: 'Classic metallic ring',          img: 'assets/avatars/robot.png', semitones: 0, drive: 1.5 },
-  { id: 'radio',         name: 'Radio',     desc: 'Narrow-band walkie-talkie',      img: 'assets/avatars/radio.jpg', semitones: 0, drive: 3.0 },
-  { id: 'megafon',       name: 'Megaphone', desc: 'Loud, distorted, narrow',        icon: 'i-mega', semitones: 0, drive: 6.0 },
-  { id: 'dinozaur',      name: 'Dinosaur',  desc: 'Way down, with a growl',         img: 'assets/avatars/dinozaur.jpg', semitones: -9, drive: 3.5 },
-  { id: 'demon',         name: 'Demon',     desc: 'Deep and distorted',             img: 'assets/avatars/demon.jpg', semitones: -7, drive: 5.0 },
-  { id: 'veverita',      name: 'Squirrel',  desc: 'Pitched way up',                 img: 'assets/avatars/veverita.jpg', semitones: 7, drive: 0.0 },
-  { id: 'extraterestru', name: 'Alien',     desc: 'Fast ring over a raised voice',  img: 'assets/avatars/extraterestru.jpg', semitones: 2, drive: 0.0 },
+  { id: 'normal',        name: 'Normal',    desc: 'Your voice, untouched',          free: true, icon: 'i-mic', semitones: 0,  formant: 0,  drive: 0.0, wobble: 0,  metal: 0 },
+  { id: 'pirat',         name: 'Pirate',    desc: 'Deep, rough, a bit of grit',     free: true, img: 'assets/avatars/pirat.jpg', semitones: -4, formant: -1, drive: 2.5, wobble: 0, metal: 0 },
+  { id: 'mosneag',       name: 'Grandpa',   desc: 'Lower, with a gentle tremble',   free: true, img: 'assets/avatars/mosneag.jpg', semitones: -2, formant: 1, drive: 1.2, wobble: 35, metal: 0 },
+  { id: 'robot',         name: 'Robot',     desc: 'Classic metallic ring',          img: 'assets/avatars/robot.png', semitones: 0, formant: 0, drive: 1.5, wobble: 0, metal: 55 },
+  { id: 'radio',         name: 'Radio',     desc: 'Narrow-band walkie-talkie',      img: 'assets/avatars/radio.jpg', semitones: 0, formant: 0, drive: 3.0, wobble: 0, metal: 0 },
+  { id: 'megafon',       name: 'Megaphone', desc: 'Loud, distorted, narrow',        icon: 'i-mega', semitones: 0, formant: 0, drive: 6.0, wobble: 0, metal: 0 },
+  { id: 'dinozaur',      name: 'Dinosaur',  desc: 'Way down, with a growl',         img: 'assets/avatars/dinozaur.jpg', semitones: -9, formant: -3, drive: 3.5, wobble: 25, metal: 0 },
+  { id: 'demon',         name: 'Demon',     desc: 'Deep and distorted',             img: 'assets/avatars/demon.jpg', semitones: -7, formant: -2, drive: 5.0, wobble: 0, metal: 0 },
+  { id: 'veverita',      name: 'Squirrel',  desc: 'Pitched way up',                 img: 'assets/avatars/veverita.jpg', semitones: 7, formant: 3, drive: 0.0, wobble: 0, metal: 0 },
+  { id: 'extraterestru', name: 'Alien',     desc: 'Fast ring over a raised voice',  img: 'assets/avatars/extraterestru.jpg', semitones: 2, formant: 0, drive: 0.0, wobble: 0, metal: 140 },
+];
+// Advanced = cursoarele Pro. Valoarea fiecaruia se tine minte PER VOCE: nu sare inapoi
+// cand schimbi vocea, conexiunea sau tab-ul. Numai „Reset to voice” le readuce la preset.
+const ADV = [
+  { id: 'pitch',   key: 'semitones', out: v => (v > 0 ? '+' : '') + v + ' st' },
+  { id: 'formant', key: 'formant',   out: v => (v > 0 ? '+' : '') + v },
+  { id: 'drive',   key: 'drive',     out: v => Number(v).toFixed(1) },
+  { id: 'wobble',  key: 'wobble',    out: v => v + '%' },
+  { id: 'metal',   key: 'metal',     out: v => +v === 0 ? 'Off' : v + ' Hz' },
 ];
 const CONN = {
   wifi: { label: 'Wi-Fi',     detail: 'UDP 45678', latency: '18 ms',  icon: 'i-wifi'  },
@@ -348,7 +388,8 @@ const CONN = {
   bt:   { label: 'Bluetooth', detail: 'A2DP',      latency: '120 ms', icon: 'i-bt'    },
   ip:   { label: 'Manual IP', detail: '',          latency: '21 ms',  icon: 'i-globe' },
 };
-const state = { view: 'connection', conn: 'wifi', voice: 'pirat' };
+// pro: in aplicatie vine de la telefon (cumparatura Google Play), vezi README.
+const state = { view: 'connection', conn: 'wifi', voice: 'pirat', pro: false, tune: {} };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -371,7 +412,10 @@ VOICES.forEach(v => {
       <span class="check"><svg width="13" height="13"><use href="#i-check"/></svg></span>
     </div>
     <div class="fx-meta"><b>${v.name}</b><span>${v.desc}</span></div>`;
-  b.addEventListener('click', () => { state.voice = v.id; render(); });
+  b.addEventListener('click', () => {
+    if (!state.pro && !v.free) return;   // blocata: nu se aplica
+    state.voice = v.id; render();
+  });
   grid.appendChild(b);
 });
 
@@ -396,16 +440,13 @@ setInterval(() => {
   });
 }, 120);
 
-// Reglaje de voce. Inaltimea si distorsiunea pornesc de la valorile vocii alese;
-// mix-ul si taierile sunt reglajele tale, deci nu se schimba cand schimbi vocea.
-const TUNE = [
+// Fine tuning (gratuit): mix si taieri — reglajele tale, nu depind de voce.
+const FINE = [
   { id: 'mix',   out: v => v + '%' },
   { id: 'locut', out: v => +v === 0 ? 'Off' : v + ' Hz' },
   { id: 'hicut', out: v => +v >= 20000 ? 'Off' : (v / 1000).toFixed(1) + ' kHz' },
-  { id: 'pitch', out: v => (v > 0 ? '+' : '') + v + ' st' },
-  { id: 'drive', out: v => Number(v).toFixed(1) },
 ];
-TUNE.forEach(({ id, out }) => {
+FINE.forEach(({ id, out }) => {
   const input = $('#' + id);
   input.addEventListener('input', () => {
     $('#' + id + '-out').textContent = out(input.value);
@@ -413,30 +454,69 @@ TUNE.forEach(({ id, out }) => {
   });
 });
 
+// Advanced (Pro): fiecare miscare se salveaza in state.tune[voce][cheie].
+const tuneOf = voice => Object.assign({}, ...ADV.map(a => ({ [a.key]: voice[a.key] })), state.tune[voice.id]);
+ADV.forEach(({ id, key, out }) => {
+  const input = $('#' + id);
+  input.addEventListener('input', () => {
+    state.tune[state.voice] = Object.assign({}, state.tune[state.voice], { [key]: +input.value });
+    $('#' + id + '-out').textContent = out(input.value);
+    if (id === 'pitch') updateMixHint();
+  });
+});
+
 function updateMixHint() {
-  const voice = VOICES.find(v => v.id === state.voice) || VOICES[0];
-  $('#mix-hint').classList.toggle('on', voice.semitones !== 0 && +$('#mix').value < 100);
+  $('#mix-hint').classList.toggle('on', +$('#pitch').value !== 0 && +$('#mix').value < 100);
 }
 
 function syncTuning(voice) {
-  $('#pitch').value = voice.semitones;
-  $('#drive').value = voice.drive;
-  TUNE.forEach(({ id, out }) => $('#' + id + '-out').textContent = out($('#' + id).value));
+  const t = tuneOf(voice);
+  ADV.forEach(({ id, key, out }) => {
+    const input = $('#' + id);
+    input.value = t[key]; input.disabled = !state.pro;
+    $('#' + id + '-out').textContent = out(t[key]);
+  });
+  FINE.forEach(({ id, out }) => $('#' + id + '-out').textContent = out($('#' + id).value));
+  $('#adv').classList.toggle('locked', !state.pro);
+  $('#adv-lock').style.display = state.pro ? 'none' : '';
+  $('#fx-reset').disabled = !state.pro;
   updateMixHint();
 }
 
 $('#fx-reset').addEventListener('click', () => {
+  delete state.tune[state.voice];
   $('#mix').value = 100;
   $('#locut').value = 0;
   $('#hicut').value = 20000;
-  render();
+  syncTuning(VOICES.find(v => v.id === state.voice));
 });
 
+$('#plan').addEventListener('click', e => {
+  if (e.target.closest('.plan-get')) { state.pro = true; render(); }   // demo; in aplicatie: deblocat de telefon
+});
+
+// Cursoarele se re-sincronizeaza DOAR cand se schimba vocea sau planul —
+// niciodata la un clic pe conexiune (asta era bug-ul cu „sar inapoi”).
+let lastVoice = null, lastPro = null;
 function render() {
   const voice = VOICES.find(v => v.id === state.voice) || VOICES[0];
-  syncTuning(voice);
+  if (voice.id !== lastVoice || state.pro !== lastPro) syncTuning(voice);
+  lastVoice = voice.id; lastPro = state.pro;
   $('#voice-name').textContent = voice.name;
-  $$('.fx').forEach(b => b.setAttribute('aria-checked', (b.dataset.voice || null) === state.voice));
+  $('#plan').innerHTML = state.pro
+    ? '<span class="plan-pro"><svg width="12" height="12"><use href="#i-crown"/></svg>PRO</span>'
+    : '<button class="plan-get"><svg width="12" height="12"><use href="#i-crown"/></svg>Get Pro</button>';
+  $('#fx-sub').textContent = state.pro
+    ? 'Applied live to the virtual microphone. Click a voice, then fine-tune it below.'
+    : 'Pirate and Grandpa are free. Click a voice to switch, or switch it from your phone.';
+  $$('.fx').forEach(b => {
+    const v = VOICES.find(x => x.id === b.dataset.voice);
+    const locked = !state.pro && !v.free;
+    b.classList.toggle('locked', locked);
+    b.setAttribute('aria-disabled', locked);
+    $('.tag', b).style.display = state.pro ? 'none' : '';
+    b.setAttribute('aria-checked', b.dataset.voice === state.voice);
+  });
 
   const on = !!state.conn;
   $$('.card').forEach(c => {
@@ -449,7 +529,7 @@ function render() {
   $('#strip').classList.toggle('on', on);
   $('#stream-title').textContent = on ? 'Streaming from Pixel 8' : 'Waiting for a phone';
   $('#stream-sub').textContent = on ? 'Into CABLE Input · voice: ' + voice.name : 'Open CoMic on your phone to start';
-  $('#latency').textContent = on ? CONN[state.conn].latency : '—';
+  $('#latency').textContent = on ? CONN[state.conn].latency : '-';
 
   const c = CONN[state.conn];
   $('#statusbar').classList.toggle('on', on);

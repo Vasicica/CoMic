@@ -11,19 +11,27 @@ pub struct VoicePreset {
     pub id: &'static str,
     pub name: &'static str,
     pub description: &'static str,
-    /// Vocile gratuite se pot asculta de proba; folosirea lor in microfonul
-    /// virtual ramane pentru versiunea platita (vezi docs/VOICE-CHANGER.md).
+    /// Vocile gratuite se folosesc fara limita si in microfonul virtual.
+    /// Restul cer versiunea Pro (vezi docs/VOICE-CHANGER.md).
     pub free: bool,
     /// Deplasarea inaltimii, in semitonuri. 0 = neschimbata.
     pub semitones: f32,
     /// Filtru trece-banda: (frecventa centrala in Hz, factorul Q).
     pub bandpass: Option<(f32, f32)>,
+    /// Taie peste aceasta frecventa (sunet infundat, ca sub apa).
+    pub low_pass: Option<f32>,
+    /// Taie sub aceasta frecventa (sunet subtire, ca la telefon).
+    pub high_pass: Option<f32>,
     /// Modulatie inelara, in Hz. Da caracterul metalic.
     pub ring_hz: Option<f32>,
     /// Tremolo: (viteza in Hz, adancime 0..1).
     pub tremolo: Option<(f32, f32)>,
+    /// Soapta: 0 = voce normala, 1 = numai respiratie, fara ton.
+    pub whisper: f32,
     /// Distorsiune. 0 = fara.
     pub drive: f32,
+    /// Ecou: (intarziere in ms, cat se repeta 0..0.9, cat de tare 0..1).
+    pub echo: Option<(f32, f32, f32)>,
     /// Corectie de volum, pentru ca efectele schimba taria perceputa.
     pub gain: f32,
 }
@@ -35,9 +43,13 @@ const DEFAULT: VoicePreset = VoicePreset {
     free: false,
     semitones: 0.0,
     bandpass: None,
+    low_pass: None,
+    high_pass: None,
     ring_hz: None,
     tremolo: None,
+    whisper: 0.0,
     drive: 0.0,
+    echo: None,
     gain: 1.0,
 };
 
@@ -45,7 +57,7 @@ pub const PRESETS: &[VoicePreset] = &[
     VoicePreset {
         id: "normal",
         name: "Normal",
-        description: "vocea ta, neschimbata — baza pentru reglaje proprii",
+        description: "vocea ta, neschimbata, baza pentru reglaje proprii",
         free: true,
         ..DEFAULT
     },
@@ -62,7 +74,7 @@ pub const PRESETS: &[VoicePreset] = &[
     VoicePreset {
         id: "mosneag",
         name: "Mosneag",
-        description: "voce putin coborata, cu tremur — batranetea se aude ca instabilitate",
+        description: "voce putin coborata, cu tremur: batranetea se aude ca instabilitate",
         free: true,
         semitones: -2.0,
         tremolo: Some((5.5, 0.35)),
@@ -127,6 +139,75 @@ pub const PRESETS: &[VoicePreset] = &[
         description: "modulatie inelara rapida peste o voce usor ridicata",
         semitones: 2.0,
         ring_hz: Some(140.0),
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "pestera",
+        name: "Pestera",
+        description: "ecou lung, ca intr-o hala sau pestera",
+        echo: Some((220.0, 0.45, 0.55)),
+        low_pass: Some(6_000.0),
+        gain: 0.9,
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "subapa",
+        name: "Sub apa",
+        description: "infundat si clatinat, ca vorbit sub apa",
+        semitones: -1.0,
+        low_pass: Some(550.0),
+        tremolo: Some((3.0, 0.45)),
+        gain: 1.6,
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "fantoma",
+        name: "Fantoma",
+        description: "soapta usor ridicata, cu ecou si unduire",
+        semitones: 2.0,
+        whisper: 0.6,
+        tremolo: Some((0.7, 0.3)),
+        echo: Some((260.0, 0.5, 0.5)),
+        gain: 0.9,
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "soapta",
+        name: "Soapta",
+        description: "numai respiratie, fara ton",
+        whisper: 1.0,
+        gain: 0.6,
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "monstru",
+        name: "Monstru",
+        description: "o octava mai jos, aspru si cu marait",
+        semitones: -12.0,
+        ring_hz: Some(28.0),
+        drive: 4.0,
+        gain: 0.6,
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "urias",
+        name: "Urias",
+        description: "voce grea, intr-o sala mare",
+        semitones: -6.0,
+        low_pass: Some(3_500.0),
+        echo: Some((90.0, 0.3, 0.35)),
+        drive: 1.0,
+        gain: 1.1,
+        ..DEFAULT
+    },
+    VoicePreset {
+        id: "telefon",
+        name: "Telefon",
+        description: "banda ingusta, ca un apel vechi",
+        high_pass: Some(300.0),
+        low_pass: Some(3_400.0),
+        drive: 1.5,
+        gain: 1.3,
         ..DEFAULT
     },
 ];

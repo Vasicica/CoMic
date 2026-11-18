@@ -89,21 +89,35 @@ Două panouri pe un rând (`.two.tuning`), în același stil ca panourile din Op
 
 Sub *Effect amount* stă un avertisment galben (`.hint`), vizibil **doar** când vocea aleasă deplasează înălțimea (`semitones != 0`) **și** mix-ul e sub 100: „This voice shifts pitch — below 100% you hear two voices at once. Use Pitch instead." Motivul e real: amestecul unei voci transpuse cu originalul sună a două persoane, nu a efect mai slab.
 
-**Advanced** — pornesc de la valorile vocii și revin la ele la fiecare schimbare de voce:
+Fine tuning este **gratuit**.
 
-| Control | Interval | Afișare | Opțiune în receptor |
-|---|---|---|---|
-| Pitch | −12…+12 semitonuri, pas 1 | `+7 st` | `--pitch` |
-| Drive | 0–10, pas 0.5 | `2.5` | `--drive` |
+**Advanced** — **Pro**. Pornesc de la valorile vocii, iar ce muți **se ține minte pentru fiecare voce**: nu sar înapoi când schimbi vocea, conexiunea sau tab-ul. Doar butonul **Reset to voice** le readuce la preset.
 
-Butonul **Reset to voice** din antetul panoului Advanced readuce mix-ul la 100% și scoate ambele tăieri; înălțimea și distorsiunea revin oricum la valorile vocii.
+| Control | Interval | Afișare | Opțiune în receptor | Câmp în `VoicePreset` |
+|---|---|---|---|---|
+| Pitch | −12…+12 semitonuri, pas 1 | `+7 st` | `--pitch` (există) | `semitones` |
+| Tone | −6…+6, pas 0.5 | `+1.5` | `--formant` (**nou**) | `formant` (**nou**) |
+| Drive | 0–10, pas 0.5 | `2.5` | `--drive` (există) | `drive` |
+| Wobble | 0–100 % | `35%` | `--wobble` (**nou**) | `tremolo.1` × 100 |
+| Metal | 0–200 Hz, pas 5 | `Off` la 0, altfel `55 Hz` | `--metal` (**nou**) | `ring_hz` |
 
-De aceea fiecare intrare din `VOICES` are acum `semitones` și `drive` — aceleași valori ca în `PRESETS` din Rust. Când schimbi un preset în Rust, schimbă-l și aici.
+Cât timp e gratuit, panoul are clasa `.locked`: cursoarele sunt `disabled`, la 45% opacitate, cu eticheta `PRO` și textul „Buy Pro once in the phone app ($1.99) — it unlocks these here too.”
+
+**Bug reparat:** în versiunea anterioară `render()` apela `syncTuning()` la orice clic (chiar și pe o conexiune), așa că Pitch și Drive săreau înapoi la valorile vocii. Acum se re-sincronizează doar când se schimbă vocea sau planul. Aplicația reală trebuie să respecte aceeași regulă: **o valoare mutată de utilizator nu se suprascrie niciodată fără acțiunea lui**.
+
+Fiecare intrare din `VOICES` are `semitones`, `formant`, `drive`, `wobble`, `metal` — aceleași valori ca în `PRESETS` din Rust (formant e propunere până se adaugă în Rust). Când schimbi un preset în Rust, schimbă-l și aici.
+
+### Gratuit / Pro (decis 2026-11-18)
+
+- **Gratuit:** microfon nelimitat, toate conexiunile, vocile **Normal, Pirate, Grandpa**, Fine tuning.
+- **Pro:** $1.99 pe lună sau $9.99 o dată, pe viață. Toate vocile + Advanced. Se cumpără **în aplicația de telefon** (Google Play Billing). Telefonul spune PC-ului pe canalul de control că e Pro, așa că o singură cumpărătură deblochează ambele. PC-ul nu are sistem de plată propriu.
+- Vocea se poate schimba **de pe ambele dispozitive**; schimbarea pe unul apare imediat pe celălalt.
+- Pe PC, când nu e Pro: cardurile Pro sunt la 55% opacitate, nu se pot alege, iar în bara de meniu e butonul „Get Pro”. Când e Pro: etichetele FREE/PRO dispar și apare badge-ul galben `PRO`.
 
 ### Options
 Două panouri:
 - **Audio**: Output device (select; implicit „CABLE Input”) → `--device`; Gain 0.5–2.0 → `--gain`; Buffer 1–10 cadre de 10 ms → `--buffer`.
-- **General**: toggle-uri Launch at startup, Auto-reconnect, Minimize to tray, Beta updates; UDP port → `--port` (implicit 45678).
+- **General**: toggle-uri Launch at startup, Auto-reconnect, Minimize to tray, Beta updates; UDP port → `--port` (implicit 45678); **Language** (System default, English, Română, Русский, Українська, Français, Español, Português, Deutsch, Türkçe, Polski).
 
 ### Help
 Trei pași (telefon → VB-Cable → „CABLE Output” în aplicație) + listă de linkuri (Troubleshooting, Report a problem, About).
@@ -115,3 +129,12 @@ Trei pași (telefon → VB-Cable → „CABLE Output” în aplicație) + listă
 - Prototipul folosește date demo („Pixel 8”, latențe fixe, VU-metru animat aleator). În aplicație ele vin din receptor: nivelul RMS, statisticile din `JitterBuffer`, dispozitivul descoperit prin `net::spawn_discovery`.
 - Dacă UI-ul se face cu un webview (ex. Tauri), `comic-ui.html` se poate folosi aproape direct; dacă se face nativ (ex. egui/iced), urmează tokens-urile și dimensiunile de mai sus.
 - Designul vizual mai e și pe canvas-ul Claude „CoMic — Desktop App”.
+
+## Actualizare 2026-11-18: aplicația reală (`windows/app/ui/index.html`)
+
+- **Bug reparat în aplicație:** cât timp merge sunetul, fereastra citește starea motorului de 20 de ori pe secundă și chema `render()`, care punea Pitch și Drive înapoi la valorile vocii. Acum cursoarele Advanced se țin minte per voce și se re-sincronizează doar la schimbarea vocii.
+- **Cursoare noi:** Wobble (`--wobble`, 0-100 %) și Metal (`--metal`, 0-200 Hz), legate de `VoiceSettings.wobble` / `metalHz` în Rust. Tone (formant) nu e încă în aplicație: motorul de înălțime mută formanții odată cu tonul, separarea lor cere un motor spectral.
+- **7 voci noi** în `voices.rs`: Peșteră, Sub apă, Fantomă, Șoaptă, Monstru, Uriaș, Telefon. Au iconițe până fac pozele.
+- **Limbă:** butonul cu glob din bara de titlu, lângă minimizare. Textele vin din `ui/i18n.js`, generat din `shared/i18n/*.json` cu `node tools/i18n_build.mjs`.
+- **Fereastra se adaptează:** de la 360×480 la ecran complet. Sub 880 px cardurile de conexiune devin rânduri; sub 620 px tab-urile rămân doar cu iconițe. Fără derulare pe orizontală la nicio lățime; ecranul Connection încape fără derulare de la 380×520 în sus.
+- **Pro în aplicație:** `state.pro = true` până se face cumpărarea pe telefon, ca să poți testa toate vocile. Pune `false` ca să vezi varianta gratuită.
