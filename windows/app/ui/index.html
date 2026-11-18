@@ -261,10 +261,16 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </div>
         <div class="panel">
           <h2>General</h2>
-          <div class="toggle-row"><div><b>Launch at startup</b><span>Start CoMic when Windows starts</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Launch at startup"></button></div>
-          <div class="toggle-row"><div><b>Auto-reconnect</b><span>Reconnect to the last phone automatically</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Auto-reconnect"></button></div>
-          <div class="toggle-row"><div><b>Minimize to tray</b><span>Keep running when the window is closed</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Minimize to tray"></button></div>
-          <div class="toggle-row"><div><b>Beta updates</b><span>Get new voices and fixes early</span></div><button class="switch" role="switch" aria-checked="false" aria-label="Beta updates"></button></div>
+          <!-- Toate pornesc stinse, pana vine raspunsul lui `read_prefs`: la fel
+               ca banda de sus, comutatorul arata ce e, nu ce presupunem noi.
+               "Beta updates" a fost scos -- nu exista nicio cale de actualizare
+               in program, deci comutatorul n-ar fi avut ce sa comute.
+               "Auto-reconnect" a devenit "Listen on launch": calculatorul nu se
+               poate reconecta la telefon, fiindca el doar asculta un port; cine
+               porneste legatura e telefonul. -->
+          <div class="toggle-row"><div><b>Launch at startup</b><span>Start CoMic when Windows starts</span></div><button class="switch" id="sw-startup" role="switch" aria-checked="false" aria-label="Launch at startup"></button></div>
+          <div class="toggle-row"><div><b>Minimize to tray</b><span>The X button hides the window instead of quitting</span></div><button class="switch" id="sw-tray" role="switch" aria-checked="false" aria-label="Minimize to tray"></button></div>
+          <div class="toggle-row"><div><b>Listen on launch</b><span>Start listening as soon as CoMic opens</span></div><button class="switch" id="sw-listen" role="switch" aria-checked="false" aria-label="Listen on launch"></button></div>
           <div class="port-row"><label for="port">UDP port</label><input id="port" class="field" value="45678"></div>
         </div>
       </div>
@@ -399,7 +405,12 @@ $$('.card').forEach(c => $('.btn', c).addEventListener('click', () => {
 // Options
 $('#gain').addEventListener('input', e => $('#gain-out').textContent = '×' + Number(e.target.value).toFixed(1));
 $('#buf').addEventListener('input', e => $('#buf-out').textContent = e.target.value + ' × 10 ms');
-$$('.switch').forEach(s => s.addEventListener('click', () => s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true')));
+// Comutatoarele nu se mai muta singure. Randul care era aici le intorcea
+// aratatorul si nimic altceva, deci trei din ele porneau aprinse peste lucruri
+// care nu se intamplau. Acum fiecare trece prin Rust, iar aratatorul se
+// deseneaza din ce raspunde Rust -- vezi "comutatoarele din Options" in
+// scriptul de legatura de mai jos. Fara Tauri (pagina deschisa in browser) nu
+// exista niciun adevar de aratat, deci ramane stins: asa e corect.
 
 // VU-metru: aici se fac doar barele. Inaltimea lor vine din nivelul real
 // publicat de motor, in scriptul de legatura de mai jos.
@@ -554,7 +565,7 @@ render();
   // ---- dispozitivele de iesire ----
   // Lista vine din Windows. Alegem din start cablul virtual, daca exista:
   // e singurul dispozitiv prin care te aud ceilalti in Discord sau in joc.
-  send('output_devices').then((names) => {
+  const devicesReady = send('output_devices').then((names) => {
     if (!names || !names.length) return;
     const select = $('#dev');
     select.textContent = '';
@@ -569,11 +580,68 @@ render();
 
   // ---- catalogul de voci ----
   // Rust decide ce voci exista; interfata adauga doar pozele.
-  send('voices').then((list) => {
+  const voicesReady = send('voices').then((list) => {
     if (!list || !list.length) return;
     buildGrid(list);
     if (!list.some((v) => v.id === state.voice)) state.voice = list[0].id;
     render();
+  });
+
+  // ---- comutatoarele din Options ----
+  // Pana acum aveau un singur ascultator, care le intorcea aratatorul si nimic
+  // altceva. Trei din ele porneau aprinse peste lucruri care nu se intamplau:
+  // programul nu se scria in pornirea automata a Windows-ului, nu avea
+  // pictograma in bara de sistem si nu asculta nimic la deschidere.
+  //
+  // Acum fiecare apasare pleaca la Rust, iar aratatorul se deseneaza din ce
+  // *raspunde* Rust, nu din ce i-am cerut. Diferenta conteaza: scrierea in
+  // registru poate fi refuzata, si atunci comutatorul trebuie sa ramana stins.
+  const SWITCHES = {
+    'sw-startup': 'launchAtStartup',
+    'sw-tray': 'minimizeToTray',
+    'sw-listen': 'listenOnLaunch',
+  };
+
+  // Oglinda preferintelor din Rust. Valorile de aici sunt doar pana la primul
+  // raspuns; dupa aceea nu se schimba decat din ce intoarce Rust.
+  let prefs = { launchAtStartup: false, minimizeToTray: false, listenOnLaunch: false };
+
+  const paintSwitches = () => {
+    Object.entries(SWITCHES).forEach(([id, key]) => {
+      $('#' + id).setAttribute('aria-checked', String(Boolean(prefs[key])));
+    });
+  };
+
+  const applyPrefs = async (wanted) => {
+    const result = await send('write_prefs', { prefs: wanted });
+    // `send` a pus deja eroarea in bara de jos; lasam comutatoarele cum erau.
+    if (!result) return;
+    prefs = result.prefs;
+    if (result.error) live.error = result.error;
+    paintSwitches();
+    render();
+  };
+
+  Object.entries(SWITCHES).forEach(([id, key]) => {
+    $('#' + id).addEventListener('click', () => {
+      live.error = null;
+      applyPrefs({ ...prefs, [key]: !prefs[key] });
+    });
+  });
+
+  const prefsReady = send('read_prefs').then((saved) => {
+    if (saved) prefs = saved;
+    paintSwitches();
+  });
+
+  // Ascultarea la deschidere are nevoie sa fi venit intai lista de dispozitive
+  // si catalogul de voci: altfel cererea ar pleca cu dispozitivul scris in
+  // macheta in loc de cablul virtual adevarat, si cu o voce care poate nici nu
+  // exista. De-aceea se asteapta toate trei, nu doar preferintele.
+  Promise.all([devicesReady, voicesReady, prefsReady]).then(() => {
+    if (prefs.listenOnLaunch && !live.running) {
+      send('start', { request: startRequest() });
+    }
   });
 
   // ---- pornire si oprire ----

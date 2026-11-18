@@ -7,7 +7,15 @@ description = "CoMic: fereastra de Windows"
 [dependencies]
 comic_core = { path = "..", package = "comic-receiver" }
 serde = { version = "1", features = ["derive"] }
-tauri = "2"
+serde_json = "1"
+# "tray-icon" aduce pictograma din bara de sistem; fara acest semn,
+# tauri::tray nu exista deloc. "image-png" si "image-ico" dau cititoarele de
+# imagini de care are nevoie pictograma.
+tauri = { version = "2", features = ["tray-icon", "image-png", "image-ico"] }
+# Pornirea automata se scrie in cheia Run a utilizatorului din registru. O
+# facem prin extensia oficiala si nu de mana: ea stie si de celelalte sisteme,
+# si e intretinuta de autorii Tauri.
+tauri-plugin-autostart = "2.7"
 
 [build-dependencies]
 tauri-build = "2"
