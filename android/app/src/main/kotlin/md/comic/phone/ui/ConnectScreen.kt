@@ -2,12 +2,11 @@ package md.comic.phone.ui
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +52,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import md.comic.phone.R
 import md.comic.phone.device.PhoneNetwork
+import md.comic.phone.device.Prefs
+import md.comic.phone.device.SystemPages
 import md.comic.phone.protocol.Discovery
 import md.comic.phone.protocol.Packet
 import md.comic.phone.stream.DiscoveryClient
@@ -77,10 +79,6 @@ import md.comic.phone.ui.theme.Radius
  * la macheta decat un ecran care cere ceva ce nu se intampla.
  */
 
-private const val PREFS = "comic"
-private const val KEY_ADDRESS = "address"
-private const val KEY_PORT = "port"
-
 private enum class Method { Wifi, Usb, Bluetooth }
 
 @Composable
@@ -88,27 +86,27 @@ fun ConnectScreen() {
     val context = LocalContext.current
     val state by StreamService.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    val prefs = remember { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+    val prefs = remember { Prefs.of(context) }
 
     var method by remember { mutableStateOf(Method.Wifi) }
-    var address by remember { mutableStateOf(prefs.getString(KEY_ADDRESS, "").orEmpty()) }
-    var port by remember { mutableStateOf(prefs.getInt(KEY_PORT, Packet.AUDIO_PORT).toString()) }
+    var address by remember { mutableStateOf(prefs.getString(Prefs.ADDRESS, "").orEmpty()) }
+    var port by remember { mutableStateOf(prefs.getInt(Prefs.PORT, Packet.AUDIO_PORT).toString()) }
     var found by remember { mutableStateOf(emptyList<Discovery.Computer>()) }
     var searching by remember { mutableStateOf(false) }
-    var notice by remember { mutableStateOf<String?>(null) }
+    @StringRes var notice by remember { mutableStateOf<Int?>(null) }
 
     fun begin() {
         val portNumber = port.toIntOrNull()
         if (address.isBlank()) {
-            notice = "Pick a PC from the list, or type its address."
+            notice = R.string.ph_err_noPc
             return
         }
         if (portNumber == null || portNumber !in 1..65_535) {
-            notice = "The port must be a number between 1 and 65535."
+            notice = R.string.ph_err_port
             return
         }
         notice = null
-        prefs.edit().putString(KEY_ADDRESS, address).putInt(KEY_PORT, portNumber).apply()
+        prefs.edit().putString(Prefs.ADDRESS, address).putInt(Prefs.PORT, portNumber).apply()
         StreamService.start(context, address.trim(), portNumber)
     }
 
@@ -118,7 +116,7 @@ fun ConnectScreen() {
         if (granted[Manifest.permission.RECORD_AUDIO] == true) {
             begin()
         } else {
-            notice = "Without microphone access there is nothing to send."
+            notice = R.string.ph_err_noMic
         }
     }
 
@@ -178,7 +176,7 @@ fun ConnectScreen() {
                             found = pcs
                             searching = false
                             notice = if (pcs.isEmpty()) {
-                                "No PC answered. Type the address by hand."
+                                R.string.ph_err_noAnswer
                             } else {
                                 null
                             }
@@ -194,18 +192,18 @@ fun ConnectScreen() {
                 Method.Usb -> UsbPanel(
                     tetherAddress = PhoneNetwork.usbTetherAddress(),
                     cablePlugged = PhoneNetwork.isUsbCablePlugged(context),
-                    onOpenSettings = { openSettings(context, Settings.ACTION_WIRELESS_SETTINGS) },
+                    onOpenSettings = { SystemPages.openTethering(context) },
                 )
 
                 // Nu se poate ajunge aici: segmentul e stins. Ramane ca plasa de
                 // siguranta, pentru ziua in care Bluetooth-ul chiar va exista.
-                Method.Bluetooth -> NoticeCard("Bluetooth is not built yet.")
+                Method.Bluetooth -> NoticeCard(stringResource(R.string.ph_btNotYet))
             }
         }
 
         notice?.let {
             Spacer(Modifier.height(14.dp))
-            Text(it, color = CoMic.Danger, fontSize = 13.sp)
+            Text(stringResource(it), color = CoMic.Danger, fontSize = 13.sp)
         }
         state.error?.let {
             Spacer(Modifier.height(14.dp))
@@ -260,7 +258,7 @@ private fun BigButton(live: Boolean, level: Float, onClick: () -> Unit) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                if (live) "Stop" else "Start",
+                stringResource(if (live) R.string.ph_stop else R.string.ph_start),
                 color = ring,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -271,11 +269,13 @@ private fun BigButton(live: Boolean, level: Float, onClick: () -> Unit) {
 
 @Composable
 private fun Headline(running: Boolean, target: String, method: Method) {
-    val title = if (running) "Sending" else "Ready to stream"
+    val title = stringResource(
+        if (running) R.string.ph_sendingTitle else R.string.ph_ready_title,
+    )
     val subtitle = when {
-        running -> "Microphone open, going to $target."
-        method == Method.Usb -> "Plug the phone into your PC, then tap Start."
-        else -> "Pick your PC below, then tap Start."
+        running -> stringResource(R.string.ph_sendingSub, target)
+        method == Method.Usb -> stringResource(R.string.ph_ready_usb)
+        else -> stringResource(R.string.ph_readyPick)
     }
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -301,11 +301,11 @@ private fun WifiPanel(
     onPick: (Discovery.Computer) -> Unit,
 ) {
     CoMicCard {
-        Text("Sending to this PC", color = CoMic.Muted, fontSize = 12.sp)
+        Text(stringResource(R.string.ph_sendingToPc), color = CoMic.Muted, fontSize = 12.sp)
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             MonoText(
-                text = address.ifBlank { "not chosen" },
+                text = address.ifBlank { stringResource(R.string.ph_notChosen) },
                 color = if (address.isBlank()) CoMic.Faint else CoMic.Accent,
                 size = if (address.isBlank()) 20.sp else 26.sp,
                 weight = FontWeight.SemiBold,
@@ -327,7 +327,7 @@ private fun WifiPanel(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Pairing code", color = CoMic.Muted, fontSize = 13.sp)
+            Text(stringResource(R.string.ph_pairing), color = CoMic.Muted, fontSize = 13.sp)
             // Imperecherea si criptarea stau in docs/PROTOCOL.md si nicaieri
             // altundeva. Un cod din sase cifre afisat aici n-ar apara nimic.
             NotYetTag()
@@ -335,7 +335,7 @@ private fun WifiPanel(
     }
 
     Spacer(Modifier.height(22.dp))
-    SectionLabel("PCs on this network")
+    SectionLabel(stringResource(R.string.ph_pcsOnNetwork))
     Spacer(Modifier.height(10.dp))
 
     found.forEach { computer ->
@@ -344,14 +344,14 @@ private fun WifiPanel(
     }
 
     PlainButton(
-        label = if (searching) "Searching…" else "Search for PCs",
+        label = stringResource(if (searching) R.string.ph_searching else R.string.ph_searchPcs),
         enabled = !searching,
         onClick = onSearch,
     )
 
     Spacer(Modifier.height(10.dp))
     Text(
-        "Not listed? Some routers block discovery — type the address by hand.",
+        stringResource(R.string.ph_notListedHand),
         color = CoMic.Muted,
         fontSize = 12.sp,
         lineHeight = 17.sp,
@@ -362,7 +362,7 @@ private fun WifiPanel(
         OutlinedTextField(
             value = address,
             onValueChange = onAddress,
-            label = { Text("PC address") },
+            label = { Text(stringResource(R.string.ph_pcAddress)) },
             placeholder = { Text("192.168.1.10") },
             singleLine = true,
             modifier = Modifier.weight(1f),
@@ -371,7 +371,7 @@ private fun WifiPanel(
         OutlinedTextField(
             value = port,
             onValueChange = { typed -> onPort(typed.filter { it.isDigit() }) },
-            label = { Text("Port") },
+            label = { Text(stringResource(R.string.ph_portLabel)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.width(110.dp),
@@ -406,7 +406,7 @@ private fun ComputerRow(computer: Discovery.Computer, onPick: () -> Unit) {
         }
         Spacer(Modifier.width(10.dp))
         Text(
-            "Pick",
+            stringResource(R.string.ph_pick),
             color = CoMic.Bg,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
@@ -438,12 +438,14 @@ private fun UsbPanel(tetherAddress: String?, cablePlugged: Boolean, onOpenSettin
                 )
                 Spacer(Modifier.width(9.dp))
                 Text(
-                    if (cablePlugged) "Cable detected" else "Cable not detected",
+                    stringResource(
+                        if (cablePlugged) R.string.ph_cableSeen else R.string.ph_cableNone,
+                    ),
                     color = CoMic.TextMain,
                     fontSize = 13.sp,
                 )
             }
-            Text("25–40 ms", color = CoMic.Muted, fontSize = 12.sp)
+            Text(stringResource(R.string.ph_usbMs), color = CoMic.Muted, fontSize = 12.sp)
         }
     }
 
@@ -452,13 +454,11 @@ private fun UsbPanel(tetherAddress: String?, cablePlugged: Boolean, onOpenSettin
     // Varianta care chiar merge, si merge fara nicio linie de cod noua:
     // receptorul asculta pe 0.0.0.0, deci si pe placa de pe cablu.
     MethodCard(
-        title = "USB tethering",
-        detail = if (tethering) {
-            "On. The phone is $tetherAddress on the cable. Search for PCs above, " +
-                "or type the PC's cable address."
+        title = stringResource(R.string.ph_tetherTitle),
+        detail = if (tetherAddress != null) {
+            stringResource(R.string.ph_tetherOn, tetherAddress)
         } else {
-            "Off. Turn it on and the cable becomes a small network — everything " +
-                "then works exactly like Wi-Fi, only faster."
+            stringResource(R.string.ph_tetherOff)
         },
         active = tethering,
         enabled = true,
@@ -467,14 +467,18 @@ private fun UsbPanel(tetherAddress: String?, cablePlugged: Boolean, onOpenSettin
     Spacer(Modifier.height(10.dp))
 
     MethodCard(
-        title = "USB debugging",
-        detail = "Needs the TCP control channel: adb only forwards TCP, and we send UDP.",
+        title = stringResource(R.string.ph_adbTitle),
+        detail = stringResource(R.string.ph_adbWhy),
         active = false,
         enabled = false,
     )
 
     Spacer(Modifier.height(14.dp))
-    PlainButton(label = "Open tethering settings", enabled = true, onClick = onOpenSettings)
+    PlainButton(
+        label = stringResource(R.string.ph_openTether),
+        enabled = true,
+        onClick = onOpenSettings,
+    )
 }
 
 @Composable
@@ -521,20 +525,27 @@ private fun LivePanel(
         // "Latency" lipseste dintre statistici, desi designul o cere: ar cere
         // masurarea drumului dus-intors, iar intors nu exista inca.
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Stat("Sent", "${frames / 100} s")
-            Stat("Via", if (method == Method.Usb) "USB" else "Wi-Fi")
-            Stat("To", target.substringBefore(':'))
+            Stat(
+                stringResource(R.string.ph_statSent),
+                stringResource(R.string.ph_secondsShort, frames / 100),
+            )
+            Stat(
+                stringResource(R.string.ph_via),
+                if (method == Method.Usb) "USB" else "Wi-Fi",
+            )
+            Stat(stringResource(R.string.ph_statTo), target.substringBefore(':'))
         }
     }
 
     Spacer(Modifier.height(14.dp))
-    NoticeCard(
-        "CoMic cannot confirm the PC is hearing this yet — the phone only sends. " +
-            "The TCP control channel will close that loop.",
-    )
+    NoticeCard(stringResource(R.string.ph_noLoopback))
 
     Spacer(Modifier.height(14.dp))
-    PlainButton(label = "Disconnect", enabled = true, onClick = onDisconnect)
+    PlainButton(
+        label = stringResource(R.string.btn_disconnect),
+        enabled = true,
+        onClick = onDisconnect,
+    )
 }
 
 @Composable
@@ -590,14 +601,6 @@ private fun PlainButton(label: String, enabled: Boolean, onClick: () -> Unit) {
             .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(vertical = 14.dp),
     )
-}
-
-/** Deschide o pagina din Setarile Android; daca lipseste, deschide Setarile. */
-private fun openSettings(context: Context, action: String) {
-    val intent = Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    val fallback = Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    runCatching { context.startActivity(intent) }
-        .onFailure { runCatching { context.startActivity(fallback) } }
 }
 
 private fun missingPermissions(context: Context): List<String> {

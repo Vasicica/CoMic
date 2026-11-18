@@ -93,3 +93,27 @@ prea adanc ca sa poata fi citite de la distanta).
   vocile de femeie/anime nu suna credibil.
 - Lista `VOICES` din `ui/index.html` e folosita doar cand pagina e deschisa in browser;
   in aplicatie catalogul vine din Rust (`voices`). Daca schimbi un preset, schimba in ambele.
+
+## 6. Ce s-a facut pe Windows (18 noiembrie 2026, sesiune cu terminal)
+
+Pasii 1, 2 si 3 din lista de mai sus sunt gata. Au rams 4, 5 si 6.
+
+- **Pasul 1:** `cargo test -p comic-receiver` trece 51 din 51. Aplicatia Tauri se
+  compileaza si porneste pe Windows, fara nimic in `stderr`. Traducerile merg,
+  corectura cursoarelor e la locul ei, fereastra se adapteaza pana la 380 px.
+  Singurul lucru gasit stricat: trei fisiere Rust neformatate, rezolvate cu
+  `cargo fmt`.
+- **Pasul 2:** pozele vocilor de PC taiate la 640x480 (4:3, aceeasi incadrare pe
+  care o face CSS-ul), de la 4,3 MB la 272 KB. `robot.png` a devenit `robot.jpg`.
+- **Pasul 3:** textele Kotlin sunt pe `stringResource`; butonul cu glob e in bara
+  de sus si schimba limba pe loc, fara repornire (`device/AppLanguage.kt`, un
+  Context cu alta configuratie, fara `androidx.appcompat`); ecranele Effects si
+  Settings exista. `StreamScreen.kt`, vechiul ecran unic, a fost sters.
+
+Ce lucreaza de-adevaratelea pe telefon azi: Connect (Wi-Fi si USB tethering),
+limba, portul din Settings si starea bateriei. Restul randurilor se vad, dar
+poarta eticheta care spune ca nu sunt scrise. Ecranul Effects e o lista de voci,
+nu un selector, fiindca fara canalul de control telefonul nu poate cere PC-ului
+sa schimbe vocea.
+
+Chei noi de traducere: 32, in `ph.*` si `on`. Scoasa: `ph.soonSettings`.

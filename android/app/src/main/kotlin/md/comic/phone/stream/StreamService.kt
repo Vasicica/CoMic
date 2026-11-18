@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import md.comic.phone.MainActivity
 import md.comic.phone.R
+import md.comic.phone.device.AppLanguage
 
 /** Ce vede interfata despre trimitere. */
 data class StreamState(
@@ -160,15 +161,20 @@ class StreamService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
+        // Notificarea se scrie in afara interfetei, deci nu trece prin
+        // CompositionLocalProvider. Fara asta ar ramane in limba telefonului
+        // chiar daca programul e pus pe alta.
+        val vorbe = AppLanguage.localized(this)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.notification_title))
-            .setContentText(getString(R.string.notification_text, address))
+            .setContentTitle(vorbe.getString(R.string.notification_title))
+            .setContentText(vorbe.getString(R.string.notification_text, address))
             // Pictogramele din bara de stare trebuie sa fie siluete albe, nu
             // desene colorate: sistemul le taie la o singura culoare. Cea a
             // sistemului arata corect; a noastra ar ieşi un patrat plin.
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(open)
-            .addAction(0, getString(R.string.stop), stop)
+            .addAction(0, vorbe.getString(R.string.stop), stop)
             .setOngoing(true)
             .setSilent(true)
             .build()
@@ -178,7 +184,7 @@ class StreamService : Service() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val channel = NotificationChannel(
             CHANNEL_ID,
-            getString(R.string.channel_name),
+            AppLanguage.localized(this).getString(R.string.channel_name),
             NotificationManager.IMPORTANCE_LOW,
         )
         channel.setShowBadge(false)

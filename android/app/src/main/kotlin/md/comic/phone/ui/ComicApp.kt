@@ -1,7 +1,6 @@
 package md.comic.phone.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,34 +10,57 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import md.comic.phone.device.AppLanguage
 import md.comic.phone.ui.components.AppBar
-import md.comic.phone.ui.components.NoticeCard
 import md.comic.phone.ui.components.Tab
 import md.comic.phone.ui.components.TabBar
 import md.comic.phone.ui.theme.CoMic
 import md.comic.phone.ui.theme.ScreenPadding
 
 /**
- * Aplicatia intreaga: bara de sus, continutul filei alese, bara de file.
+ * Aplicatia intreaga, cu limba aleasa pusa peste tot.
  *
- * Doar Connect e construit. Effects si Settings urmeaza; pana atunci filele
- * exista si spun pe sleau ca sunt goale, in loc sa arate comenzi care n-ar
- * face nimic.
+ * Limba se schimba aici, nu in fiecare ecran: dam mai departe un Context cu
+ * alta configuratie, si `stringResource` de oriunde mai jos citeste din el.
+ * Asa butonul cu glob schimba tot ecranul pe loc, fara repornirea aplicatiei.
  */
 @Composable
 fun ComicApp() {
+    val phone = LocalContext.current
+    var language by remember { mutableStateOf(AppLanguage.saved(phone)) }
+    val chosen = remember(phone, language) { AppLanguage.wrap(phone, language) }
+
+    CompositionLocalProvider(
+        LocalContext provides chosen,
+        // Si configuratia, nu doar contextul: `stringResource` se uita la ea ca
+        // sa stie cand trebuie sa deseneze din nou.
+        LocalConfiguration provides chosen.resources.configuration,
+    ) {
+        Shell(
+            language = language,
+            onLanguage = { code ->
+                // Scris pe loc: la pornirea urmatoare o gaseste tot asa, iar
+                // notificarea serviciului o citeste din acelasi loc.
+                AppLanguage.save(phone, code)
+                language = code
+            },
+        )
+    }
+}
+
+/** Bara de sus, continutul filei alese, bara de file. */
+@Composable
+private fun Shell(language: String?, onLanguage: (String?) -> Unit) {
     var tab by remember { mutableStateOf(Tab.Connect) }
 
     Column(
@@ -51,7 +73,11 @@ fun ComicApp() {
             // singur, altfel titlul sta peste ceas.
             .safeDrawingPadding(),
     ) {
-        AppBar(onGetPro = { tab = Tab.Effects })
+        AppBar(
+            language = language,
+            onLanguage = onLanguage,
+            onGetPro = { tab = Tab.Effects },
+        )
 
         Column(
             modifier = Modifier
@@ -62,51 +88,12 @@ fun ComicApp() {
         ) {
             when (tab) {
                 Tab.Connect -> ConnectScreen()
-                Tab.Effects -> Placeholder(
-                    title = "Voice effects",
-                    explanation = "Not built yet. Picking a voice from the phone needs the " +
-                        "TCP control channel — right now the phone only sends audio one " +
-                        "way and has no way to tell the PC anything. Until then, change " +
-                        "the voice in CoMic on the PC.",
-                )
-
-                Tab.Settings -> Placeholder(
-                    title = "Settings",
-                    explanation = "Not built yet. The port lives on the Connect tab for now. " +
-                        "Microphone choice, gain, noise suppression and the background " +
-                        "options come next.",
-                )
+                Tab.Effects -> EffectsScreen()
+                Tab.Settings -> SettingsScreen(language = language, onLanguage = onLanguage)
             }
             Spacer(Modifier.height(24.dp))
         }
 
         TabBar(selected = tab, onSelect = { tab = it })
-    }
-}
-
-/**
- * O fila care inca nu exista.
- *
- * Spune de ce lipseste, nu doar ca lipseste: "coming soon" nu ajuta pe nimeni,
- * iar motivul e de obicei chiar lucrul care se construieste in continuare.
- */
-@Composable
-private fun Placeholder(title: String, explanation: String) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Spacer(Modifier.height(40.dp))
-        Text(title, color = CoMic.TextMain, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(6.dp))
-        Text(
-            "Under construction",
-            color = CoMic.Muted,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(22.dp))
-        NoticeCard(explanation)
     }
 }
