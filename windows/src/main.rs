@@ -217,6 +217,14 @@ fn main() {
         for name in audio::output_device_names() {
             println!("  {name}");
         }
+        // Lista singura nu spune nimic: numele capatului virtual nu seamana
+        // intotdeauna a cablu, fiindca Windows il poate redenumi in limba
+        // sistemului. Randul asta arata ce alege programul, ca sa se vada
+        // daca a nimerit, nu sa ghicim dupa nume.
+        match audio::virtual_mic_name() {
+            Some(name) => println!("\nMicrofonul virtual: {name}"),
+            None => println!("\nMicrofonul virtual: nu e instalat (sunetul ar pleca in difuzoare)"),
+        }
         return;
     }
 

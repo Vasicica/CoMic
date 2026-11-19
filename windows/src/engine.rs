@@ -80,6 +80,10 @@ pub struct Status {
     /// De ce nu soseste nimic, cand am asteptat destul ca sa fie ceva de spus.
     /// Nu e o eroare: noi lucram cum trebuie, altceva ne sta in cale.
     pub advice: Option<Advice>,
+    /// Sunetul iese pe difuzoare fiindca microfonul virtual nu e instalat.
+    /// Totul merge, si tocmai de aceea e primejdios: omul se aude pe el si
+    /// crede ca si ceilalti il aud. Vezi `audio::Playback`.
+    pub virtual_mic_missing: bool,
     /// Ultima eroare, in cuvinte pe care le poate citi utilizatorul.
     pub error: Option<String>,
 }
@@ -221,6 +225,7 @@ fn apply(
                         status.source = Some(request.source);
                         status.voice = request.voice.clone();
                         status.output_device = active.playback.device_name.clone();
+                        status.virtual_mic_missing = active.playback.virtual_mic_missing;
                         status.input_device = active
                             .capture
                             .as_ref()
@@ -406,6 +411,10 @@ fn publish(running: &Option<Running>, status: &Arc<Mutex<Status>>) {
         status.buffered_ms = 0;
         status.phone = Peer::default();
         status.advice = None;
+        // Campul vorbeste despre sunetul care curge acum. Cand nu curge nimic,
+        // nu e nimic de spus aici; ca VB-Cable lipseste de tot afla fereastra
+        // separat, inca de la pornire.
+        status.virtual_mic_missing = false;
         return;
     };
 

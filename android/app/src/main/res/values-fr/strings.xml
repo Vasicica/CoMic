@@ -35,6 +35,10 @@
     <string name="strip_phoneMuted">%1$s est en sourdine</string>
     <string name="advice_firewallBlocked">Le pare-feu Windows bloque le téléphone sur %1$s. Dans les paramètres réseau, passez ce réseau en privé.</string>
     <string name="advice_firewallNoRule">Le pare-feu Windows empêche CoMic de recevoir des connexions. Autorisez-le dans les paramètres du pare-feu.</string>
+    <string name="vb_title">VB-Cable n\'est pas installé</string>
+    <string name="vb_body">Sans lui, le son part dans vos haut-parleurs. Vous vous entendez, donc tout semble marcher, mais Discord, CS2 et les autres n\'entendent rien : ils écoutent un micro qui n\'existe pas encore.</string>
+    <string name="vb_get">Installer VB-Cable</string>
+    <string name="vb_manual">Le navigateur ne s\'est pas ouvert. Allez vous-même sur %1$s.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Téléphone et PC sur le même réseau.</string>
     <string name="card_wifi_on">Écoute sur le port %1$s. Connectez-vous depuis le téléphone.</string>

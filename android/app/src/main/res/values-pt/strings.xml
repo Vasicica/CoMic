@@ -35,6 +35,10 @@
     <string name="strip_phoneMuted">%1$s está sem som</string>
     <string name="advice_firewallBlocked">O Firewall do Windows bloqueia o celular em %1$s. Nas configurações de rede, marque essa rede como particular.</string>
     <string name="advice_firewallNoRule">O Firewall do Windows não deixa o CoMic receber conexões. Permita nas configurações do firewall.</string>
+    <string name="vb_title">O VB-Cable não está instalado</string>
+    <string name="vb_body">Sem ele o som vai para as suas colunas. Você ouve-se a si próprio, por isso parece que funciona, mas o Discord, o CS2 e os outros não ouvem nada: eles escutam um microfone que ainda não existe.</string>
+    <string name="vb_get">Instalar o VB-Cable</string>
+    <string name="vb_manual">O navegador não abriu. Vá você mesmo a %1$s.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Celular e PC na mesma rede.</string>
     <string name="card_wifi_on">Ouvindo na porta %1$s. Conecte pelo celular.</string>

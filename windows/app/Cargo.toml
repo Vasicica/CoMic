@@ -16,6 +16,10 @@ tauri = { version = "2", features = ["tray-icon", "image-png", "image-ico"] }
 # facem prin extensia oficiala si nu de mana: ea stie si de celelalte sisteme,
 # si e intretinuta de autorii Tauri.
 tauri-plugin-autostart = "2.7"
+# Deschide o legatura in browserul implicit. Ne trebuie pentru un singur buton:
+# cel care duce la VB-Cable cand nu e instalat. Acelasi temei ca mai sus, sa nu
+# chemam noi de mana un proces de sistem pentru ceva ce extensia stie sa faca.
+tauri-plugin-opener = "2"
 
 [build-dependencies]
 tauri-build = "2"

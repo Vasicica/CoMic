@@ -37,6 +37,55 @@ fn input_devices() -> Vec<String> {
     monitor::input_device_names()
 }
 
+/// Adresa de unde se ia microfonul virtual.
+///
+/// Sta aici, nu in interfata, ca sa fie un singur loc de schimbat cand CoMic
+/// isi va avea propriul driver si legatura asta nu va mai trebui nimanui.
+const VB_CABLE_URL: &str = "https://vb-audio.com/Cable/";
+
+/// Ce stie programul despre microfonul virtual.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct VirtualMic {
+    /// Numele capatului ales, cand exista unul.
+    ///
+    /// Fereastra il pune in lista de dispozitive in loc sa-l caute singura.
+    /// Cat timp il cauta singura, raspunsul statea in doua locuri si se puteau
+    /// desparti: aici scria "CABLE Input", iar in interfata orice nume cu
+    /// "cable" in el. Pe un Windows unde capatul se cheama "Динамики", cele
+    /// doua dadeau raspunsuri diferite.
+    name: Option<String>,
+    /// De unde se ia. Fereastra o primeste ca sa o poata arata scrisa daca
+    /// butonul nu reuseste sa deschida browserul. Altfel adresa ar sta in
+    /// doua locuri, aici si in interfata, si s-ar desparti la prima schimbare.
+    installer_url: String,
+}
+
+/// Exista microfonul virtual pe calculatorul asta, si care e?
+///
+/// Fereastra intreaba la pornire, nu dupa ce apesi Conecteaza. Fara el,
+/// sunetul pleaca in difuzoare: te auzi, deci crezi ca merge, dar in Discord
+/// nu ajunge nimic. E mai bine sa afli inainte sa vorbesti degeaba.
+#[tauri::command]
+fn virtual_mic() -> VirtualMic {
+    VirtualMic {
+        name: audio::virtual_mic_name(),
+        installer_url: VB_CABLE_URL.to_string(),
+    }
+}
+
+/// Deschide pagina de unde se ia VB-Cable.
+///
+/// Intoarce ce s-a intamplat, nu ce s-a cerut: daca browserul nu s-a deschis,
+/// fereastra arata adresa scrisa, ca omul sa o poata copia de mana.
+#[tauri::command]
+fn open_vb_cable(app: tauri::AppHandle) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .open_url(VB_CABLE_URL, None::<&str>)
+        .map_err(|error| error.to_string())
+}
+
 /// Catalogul de voci vine din Rust, ca interfata sa nu tina o copie proprie
 /// care ar ramane in urma la prima voce adaugata.
 #[tauri::command]
@@ -215,6 +264,7 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_autostart::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
         .manage(Engine::spawn())
         .manage(store)
         .setup(|app| {
@@ -269,7 +319,9 @@ fn main() {
             set_gain,
             status,
             read_prefs,
-            write_prefs
+            write_prefs,
+            virtual_mic,
+            open_vb_cable
         ])
         .run(context)
         .expect("fereastra CoMic nu a putut porni");

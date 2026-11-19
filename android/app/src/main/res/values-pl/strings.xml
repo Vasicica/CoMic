@@ -35,6 +35,10 @@
     <string name="strip_phoneMuted">%1$s jest wyciszony</string>
     <string name="advice_firewallBlocked">Zapora Windows blokuje telefon w sieci %1$s. W ustawieniach sieci ustaw tę sieć jako prywatną.</string>
     <string name="advice_firewallNoRule">Zapora Windows nie pozwala aplikacji CoMic odbierać połączeń. Zezwól na to w ustawieniach zapory.</string>
+    <string name="vb_title">VB-Cable nie jest zainstalowany</string>
+    <string name="vb_body">Bez niego dźwięk idzie do głośników. Słyszysz siebie, więc wygląda, że działa, ale Discord, CS2 i reszta nie słyszą nic: słuchają mikrofonu, którego jeszcze nie ma.</string>
+    <string name="vb_get">Pobierz VB-Cable</string>
+    <string name="vb_manual">Przeglądarka się nie otworzyła. Wejdź sam na %1$s.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Telefon i PC w tej samej sieci.</string>
     <string name="card_wifi_on">Nasłuchuję na porcie %1$s. Połącz się z telefonu.</string>

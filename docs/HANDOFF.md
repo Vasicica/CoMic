@@ -140,3 +140,11 @@ Chei noi de traducere: 32, in `ph.*` si `on`. Scoasa: `ph.soonSettings`.
   `i-monster`, `i-giant`, `i-phone` si perechile lor `ic_*.xml` de pe Android) au fost sterse:
   dupa ce o voce are poza, iconita ei nu se mai vede niciodata, iar codul care o tine ar
   spune ca se vede. Raman cu iconita doar Normal si Megafon, pentru ca nu sunt personaje.
+- **Microfonul virtual:** fereastra spune acum cand VB-Cable nu e instalat, cu un buton spre
+  pagina lui, in loc sa treaca in tacere pe difuzoare. Lucrand la asta a iesit la iveala o
+  pana mai veche: recunoasterea cauta numele „CABLE Input”, dar Windows lasa capatul sa fie
+  redenumit si atunci ii pune numele generic in limba sistemului. Pe calculatorul de proba
+  el se cheama „Динамики (2- VB-Audio Virtual Cable)”, deci programul nu-l gasea; mergea
+  numai fiindca fereastra alegea singura din lista, cu o cautare mai larga. Acum hotaraste
+  un singur loc (`audio::virtual_mic_name`), recunoasterea se tine de producatorul
+  driverului, si se ocoleste capatul cu saisprezece canale. Vezi `docs/TESTARE.md` sectiunea 11.

@@ -162,3 +162,38 @@ de retea. Comanda cere PowerShell pornit ca administrator.
 
 Zbaterea conteaza mai mult decat media: ea e ce trebuie sa inghita rezerva de
 jitter. Pe cablu se poate cobora rezerva mult sub ce suporta Wi-Fi-ul.
+
+## 11. Microfonul virtual (adaugat pe 2026-11-19)
+
+Verificarea de un rand, care nu cere nici telefon, nici fereastra:
+
+    cargo run -- --list-devices
+
+Ultimul rand spune ce alege programul. Daca scrie un nume, acela e capatul in
+care va scrie; daca scrie ca nu e instalat, sunetul ar pleca in difuzoare.
+
+**Capcana, si de ce randul acela exista.** Windows lasa capatul de scriere al
+cablului sa fie redenumit, si atunci ii pune numele generic in limba
+sistemului. Pe calculatorul de proba lista arata asa:
+
+    Dispozitive de redare:
+      Динамики (2- VB-Audio Virtual Cable)       <- capatul de scriere
+      CABLE In 16 Ch (2- VB-Audio Virtual Cable) <- alt capat, cu 16 canale
+      Динамики (High Definition Audio Device)    <- boxele adevarate
+
+    Microfoane:
+      CABLE Output (2- VB-Audio Virtual Cable)   <- ce aude Discord
+
+Cuvintele „CABLE Input” nu apar nicaieri. Deci nu cauta dupa ele: uita-te dupa
+„VB-Audio”, care vine din driver si ramane. Si nu lua capatul cu 16 canale: el
+isi are perechea lui de ascultare, pe care nu asculta nimeni din intamplare.
+
+**De probat cu mana** (cere un calculator fara VB-Cable, sau driverul scos):
+
+- [ ] La pornirea ferestrei, pe Conectare apare cardul galben, inaintea
+      metodelor de conectare.
+- [ ] Butonul deschide vb-audio.com in browser. Daca nu se deschide, cardul
+      arata adresa scrisa, ca sa poata fi copiata.
+- [ ] Textul se schimba odata cu limba, fara repornire.
+- [ ] Cu VB-Cable instalat, cardul **nu** apare, iar lista de dispozitive din
+      Optiuni are deja ales capatul din randul „Microfonul virtual”.

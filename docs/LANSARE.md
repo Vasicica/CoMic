@@ -90,13 +90,22 @@ Nu e sfat juridic sau fiscal; la bani si taxe intreaba un contabil din Moldova.
 
 ## 7. Ca sa nu apara bug-uri mai tarziu
 
-- [ ] **Versiunea protocolului** in prima discutie telefon-PC. Un telefon actualizat si un PC
+- [x] **Versiunea protocolului** in prima discutie telefon-PC. Un telefon actualizat si un PC
       vechi trebuie sa-si spuna clar „actualizeaza CoMic pe PC”, nu sa taca.
+      Facut: salutul de pe canalul de control duce `v`, iar `control.rs` intoarce din drum
+      un telefon care vorbeste alta versiune, spunand ce versiune stie el.
 - [ ] **Microfonul ocupat** (apel, alta aplicatie): pauza si mesaj, nu tacere.
 - [ ] **Telefoane Xiaomi, Huawei, Samsung** opresc aplicatiile in fundal mai agresiv. Testeaza pe
       cat mai multe; pune in Ajutor pasii pentru fiecare.
 - [ ] **PC-ul intra in sleep** in timp ce merge: la trezire, programul trebuie sa reporneasca ascultarea.
-- [ ] **VB-Cable lipsa:** programul il detecteaza si arata un buton spre instalare, nu o eroare tehnica.
+- [x] **VB-Cable lipsa:** programul il detecteaza si arata un buton spre instalare, nu o eroare tehnica.
+      Facut pe 2026-11-19. Cu asta a iesit la iveala o pana mai veche: programul cauta
+      numele „CABLE Input”, dar Windows lasa capatul sa fie redenumit, si atunci ii pune
+      numele generic in limba sistemului. Pe calculatorul de proba, capatul se cheama
+      „Динамики (2- VB-Audio Virtual Cable)”, deci cautarea nu gasea nimic si sunetul ar fi
+      plecat in difuzoare fara o vorba. Acum recunoasterea se tine de producatorul
+      driverului, care vine din driver si nu se schimba, si ocoleste capatul cu saisprezece
+      canale, pe care nu asculta nimeni. Vezi `windows/src/audio.rs`.
 - [ ] **Doua PC-uri in aceeasi retea:** lista arata ambele, cu numele lor.
 - [ ] **Raport de erori:** daca adaugi vreodata trimiterea automata a erorilor, se schimba
       politica de confidentialitate si formularul Data safety. Fa-l cu acord explicit.

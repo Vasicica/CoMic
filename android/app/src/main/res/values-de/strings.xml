@@ -35,6 +35,10 @@
     <string name="strip_phoneMuted">%1$s ist stummgeschaltet</string>
     <string name="advice_firewallBlocked">Die Windows-Firewall blockiert das Telefon in %1$s. Stelle dieses Netzwerk in den Netzwerkeinstellungen auf privat.</string>
     <string name="advice_firewallNoRule">Die Windows-Firewall lässt CoMic keine Verbindungen annehmen. Erlaube es in den Firewall-Einstellungen.</string>
+    <string name="vb_title">VB-Cable ist nicht installiert</string>
+    <string name="vb_body">Ohne es geht der Ton auf deine Lautsprecher. Du hörst dich selbst, es wirkt also, als würde es funktionieren, aber Discord, CS2 und der Rest hören nichts: Sie lauschen an einem Mikrofon, das es noch nicht gibt.</string>
+    <string name="vb_get">VB-Cable holen</string>
+    <string name="vb_manual">Der Browser ist nicht aufgegangen. Gehe selbst auf %1$s.</string>
     <string name="card_wifi_name">WLAN</string>
     <string name="card_wifi_off">Handy und PC im selben Netzwerk.</string>
     <string name="card_wifi_on">Höre auf Port %1$s. Verbinde dich vom Handy aus.</string>

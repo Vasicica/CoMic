@@ -60,6 +60,14 @@ h1{margin:0;font-size:20px;font-weight:600;letter-spacing:-.02em}
 h2{margin:0 0 12px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
 
 /* Status strip */
+/* Cardul care spune ca lipseste cablul virtual. Galben, nu rosu: nimic nu e
+   stricat, doar sunetul merge in alta parte decat crede omul. */
+.lack{display:flex;align-items:center;gap:20px;padding:16px 20px;margin-bottom:14px;border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.07)}
+.lack[hidden]{display:none}
+.lack .txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.lack b{color:var(--warn);font-size:13px}
+.lack span{font-size:12px;color:var(--dim);line-height:1.5}
+.lack .btn{flex:none}
 .strip{display:flex;align-items:center;gap:24px;padding:18px 20px}
 .strip .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:#1A1A1A;color:var(--muted)}
 .strip.on .ico{background:rgba(74,222,128,.14);color:var(--ok)}
@@ -320,6 +328,14 @@ main{overflow-x:hidden}
     <!-- CONNECTION -->
     <section class="view active" id="view-connection" role="tabpanel">
       <div class="head"><div><h1 data-i18n="conn.title">Connect your phone</h1><p class="sub" data-i18n="conn.sub">Open CoMic on your phone and pick a method.</p></div></div>
+      <!-- Fara cablul virtual sunetul pleaca in difuzoare: te auzi tu, deci
+           pare ca merge, dar in Discord nu ajunge nimic. Cardul sta inaintea
+           metodelor de conectare, fiindca nu are rost sa alegi cum te
+           conectezi cand sunetul n-are unde ajunge. -->
+      <article class="panel lack" id="vb" hidden>
+        <div class="txt"><b data-i18n="vb.title"></b><span id="vb-say"></span></div>
+        <button class="btn" id="vb-get" data-i18n="vb.get"></button>
+      </article>
       <div class="panel strip" id="strip">
         <div class="ico"><svg width="20" height="20"><use href="#i-mic"/></svg></div>
         <div class="txt"><b id="stream-title">Waiting for a phone</b><span id="stream-sub"></span></div>
@@ -530,6 +546,13 @@ const state = { view: 'connection', conn: null, voice: 'pirat', pro: false, tune
 // dus-intorsul si cand a plecat. Ramane gol cat timp nu s-a legat nimeni, si
 // pentru telefoanele vechi care nu stiu inca de canal.
 const live = { running: false, source: null, level: 0, bufferedMs: 0, outputDevice: '', phone: null, advice: null, error: null };
+
+// Cablul virtual. `missing` vine de doua ori: o data la pornire, cand intrebam
+// daca exista pe calculator, si apoi din starea redarii, care stie unde a
+// ajuns de fapt sunetul. A doua e cea care conteaza, fiindca e masurata.
+// `openFailed` tine minte ca butonul n-a reusit sa deschida browserul, ca sa
+// aratam adresa scrisa in loc sa tacem a doua oara.
+const vb = { url: '', missing: false, openFailed: false };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -704,10 +727,25 @@ function setLang(code) {
   try { localStorage.setItem(LANG_KEY, lang); } catch (_) { /* nu e grav: data viitoare urmam sistemul */ }
   applyI18n();
 }
+/**
+ * Arata sau ascunde cardul cablului virtual si scrie ce are de spus.
+ *
+ * Se cheama din applyI18n, nu doar o data la pornire, ca textul sa se schimbe
+ * odata cu limba. Cardul e singurul loc din fereastra care poate ramane in
+ * urma: restul se redeseneaza la fiecare stare.
+ */
+function paintVb() {
+  const card = $('#vb');
+  if (!card) return;
+  card.hidden = !vb.missing;
+  $('#vb-say').textContent = vb.openFailed ? t('vb.manual', { url: vb.url }) : t('vb.body');
+}
+
 function applyI18n() {
   document.documentElement.lang = lang;
   $('#lang-code').textContent = lang.toUpperCase();
   $$('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  paintVb();
   $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
   buildLangMenu();
   paintGridText();
@@ -866,20 +904,40 @@ applyI18n();
     }
   };
 
-  // ---- dispozitivele de iesire ----
-  // Lista vine din Windows. Alegem din start cablul virtual, daca exista:
-  // e singurul dispozitiv prin care te aud ceilalti in Discord sau in joc.
-  const devicesReady = send('output_devices').then((names) => {
-    if (!names || !names.length) return;
-    const select = $('#dev');
-    select.textContent = '';
-    names.forEach((name) => {
-      const option = document.createElement('option');
-      option.textContent = name;
-      select.appendChild(option);
+  // ---- dispozitivele de iesire si cablul virtual ----
+  // Lista vine din Windows, alegerea vine din Rust. Interfata nu mai cauta
+  // singura cablul: numele lui nu seamana intotdeauna a cablu, fiindca Windows
+  // il poate redenumi in limba sistemului, iar doua cautari deosebite dadeau
+  // doua raspunsuri deosebite. Acum hotaraste un singur loc.
+  const devicesReady = Promise.all([send('output_devices'), send('virtual_mic')])
+    .then(([names, cablu]) => {
+      if (cablu) {
+        vb.url = cablu.installerUrl;
+        vb.missing = !cablu.name;
+        paintVb();
+      }
+      if (!names || !names.length) return;
+      const select = $('#dev');
+      select.textContent = '';
+      names.forEach((name) => {
+        const option = document.createElement('option');
+        option.textContent = name;
+        select.appendChild(option);
+      });
+      select.value = cablu?.name ?? names[0];
     });
-    const cable = names.find((n) => /cable/i.test(n));
-    select.value = cable ?? names[0];
+
+  // Butonul nu trece prin `send`: acolo o reusita si o nereusita arata la fel
+  // (amandoua dau null), iar aici tocmai asta trebuie deosebit. Daca browserul
+  // nu se deschide, aratam adresa scrisa, ca omul sa o poata copia.
+  $('#vb-get').addEventListener('click', async () => {
+    try {
+      await invoke('open_vb_cable');
+      vb.openFailed = false;
+    } catch (error) {
+      vb.openFailed = true;
+    }
+    paintVb();
   });
 
   // ---- catalogul de voci ----
@@ -1073,6 +1131,14 @@ applyI18n();
     // numai cand motorul chiar a intrebat Windows-ul.
     live.advice = status.advice ?? null;
     live.error = status.error ?? null;
+
+    // Ridicam steagul, dar nu il coboram de aici. Cand sunetul curge, campul e
+    // masurat: stim unde a ajuns de fapt. Cand nu curge, e fals prin definitie,
+    // si asta nu inseamna ca VB-Cable a aparut intre timp.
+    if (status.virtualMicMissing && !vb.missing) {
+      vb.missing = true;
+      paintVb();
+    }
 
     paintMeter(status.running ? status.level : 0);
 

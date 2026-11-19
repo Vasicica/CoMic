@@ -35,6 +35,10 @@
     <string name="strip_phoneMuted">%1$s без звука</string>
     <string name="advice_firewallBlocked">Брандмауэр Windows блокирует телефон в сети %1$s. В сетевых параметрах сделайте её частной.</string>
     <string name="advice_firewallNoRule">Брандмауэр Windows не даёт CoMic принимать подключения. Разрешите его в настройках брандмауэра.</string>
+    <string name="vb_title">VB-Cable не установлен</string>
+    <string name="vb_body">Без него звук идёт в колонки. Вы слышите себя, кажется, что всё работает, но Discord, CS2 и остальные не слышат ничего: они слушают микрофон, которого пока нет.</string>
+    <string name="vb_get">Установить VB-Cable</string>
+    <string name="vb_manual">Браузер не открылся. Зайдите сами на %1$s.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Телефон и ПК в одной сети.</string>
     <string name="card_wifi_on">Слушаю порт %1$s. Подключитесь с телефона.</string>
