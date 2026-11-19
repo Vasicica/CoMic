@@ -57,7 +57,8 @@ Procesarea sta pe calculator, in Rust (`windows/src/effects`). O voce noua = un 
 modulatie inelara (metal), tremolo, soapta (zgomot care urmareste vocea), distorsiune, ecou.
 
 Voci adaugate pe 2026-11-18: Pestera, Sub apa, Fantoma, Soapta, Monstru, Urias, Telefon.
-Le lipsesc pozele: deocamdata au iconite.
+Pozele lor au venit pe 2026-11-19, deci toate vocile-personaj au acum poza. Raman cu iconita
+doar Normal si Megafon, si asa trebuie sa fie: niciuna nu e un personaj.
 
 ### De ce unele voci nu suna "a personaj"
 
@@ -67,7 +68,14 @@ copil sau anime trebuie separat **timbrul** (formantii) de inaltime: motor spect
 lucrare separata. Pana atunci, raman vocile pe care efectele simple le fac credibil.
 
 Pentru poze: intai asculti vocea gata, apoi faci poza care i se potriveste. Acelasi stil
-pentru toate (bust 3D, fundal negru, personaj centrat, patrat), ca grila sa arate unitar.
+pentru toate (bust 3D, fundal negru, personaj centrat), ca grila sa arate unitar.
+
+Formatul cerut: **640x480 JPEG**, nu patrat. Cartela din fereastra are `aspect-ratio: 4/3`
+(`.fx-art` in `windows/app/ui/index.html`), iar pe telefon pozele stau in
+`android/app/src/main/res/drawable-xhdpi/voice_<id>.jpg` — acelasi fisier, acelasi format.
+O poza primita in alt raport se taie din mijloc, dar daca personajul e subtire si inconjurat
+de negru, taietura din mijloc il lasa prea mic la marimea unei cartele: atunci se taie mai
+strans in jurul lui. Asa s-a facut cu Soapta.
 
 ## Folosire abuziva
 

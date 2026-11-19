@@ -68,30 +68,30 @@ val VOICES = listOf(
     ),
     Voice(
         "pestera", R.string.voice_pestera_name, R.string.voice_pestera_desc, false,
-        R.drawable.ic_cave,
+        R.drawable.ic_sparkle, R.drawable.voice_pestera,
     ),
     Voice(
         "subapa", R.string.voice_subapa_name, R.string.voice_subapa_desc, false,
-        R.drawable.ic_water,
+        R.drawable.ic_sparkle, R.drawable.voice_subapa,
     ),
     Voice(
         "fantoma", R.string.voice_fantoma_name, R.string.voice_fantoma_desc, false,
-        R.drawable.ic_ghost,
+        R.drawable.ic_sparkle, R.drawable.voice_fantoma,
     ),
     Voice(
         "soapta", R.string.voice_soapta_name, R.string.voice_soapta_desc, false,
-        R.drawable.ic_whisper,
+        R.drawable.ic_sparkle, R.drawable.voice_soapta,
     ),
     Voice(
         "monstru", R.string.voice_monstru_name, R.string.voice_monstru_desc, false,
-        R.drawable.ic_monster,
+        R.drawable.ic_sparkle, R.drawable.voice_monstru,
     ),
     Voice(
         "urias", R.string.voice_urias_name, R.string.voice_urias_desc, false,
-        R.drawable.ic_giant,
+        R.drawable.ic_sparkle, R.drawable.voice_urias,
     ),
     Voice(
         "telefon", R.string.voice_telefon_name, R.string.voice_telefon_desc, false,
-        R.drawable.ic_phone,
+        R.drawable.ic_sparkle, R.drawable.voice_telefon,
     ),
 )

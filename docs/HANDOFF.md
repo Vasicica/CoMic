@@ -85,7 +85,8 @@ prea adanc ca sa poata fi citite de la distanta).
 4. Pro: Google Play Billing cu doua produse (lunar + pe viata), mesaj pe canalul de control
    telefon -> PC cu starea Pro; pe PC `state.pro` vine din acel mesaj.
 5. Mesaj de ajutor cand Firewall-ul Windows blocheaza UDP 45678 (vezi `docs/LANSARE.md` sectiunea 6).
-6. Poze pentru vocile noi (acum au iconite). Acelasi stil ca restul.
+6. Poze pentru vocile noi (acum au iconite). Acelasi stil ca restul. **Facut pe 2026-11-19**,
+   vezi sectiunea 7.
 
 ## 5. Limitari cunoscute
 - Cursorul „Tone (formant)” din designuri **nu exista in aplicatie**: `pitch.rs` muta formantii
@@ -96,7 +97,8 @@ prea adanc ca sa poata fi citite de la distanta).
 
 ## 6. Ce s-a facut pe Windows (18 noiembrie 2026, sesiune cu terminal)
 
-Pasii 1, 2 si 3 din lista de mai sus sunt gata. Au rams 4, 5 si 6.
+Pasii 1, 2 si 3 din lista de mai sus sunt gata. Pasii 4, 5 si 6 s-au facut pe
+19 noiembrie 2026, vezi sectiunea 7.
 
 - **Pasul 1:** `cargo test -p comic-receiver` trece 51 din 51. Aplicatia Tauri se
   compileaza si porneste pe Windows, fara nimic in `stderr`. Traducerile merg,
@@ -117,3 +119,24 @@ nu un selector, fiindca fara canalul de control telefonul nu poate cere PC-ului
 sa schimbe vocea.
 
 Chei noi de traducere: 32, in `ph.*` si `on`. Scoasa: `ph.soonSettings`.
+
+## 7. Ce s-a facut pe 19 noiembrie 2026
+
+- **Pasul 4, jumatatea care se putea face:** starea Pro calatoreste de la telefon la
+  calculator, pe canalul de control (`pro` in salut, plus un mesaj `pro` cand se schimba
+  in timpul transmisiei). Calculatorul o tine minte in `prefs.json`, altfel vocile s-ar
+  incuia ori de cate ori telefonul nu e legat. Google Play Billing **nu** s-a facut: cere
+  cont de Play Console, doua produse create acolo si o compilare semnata urcata pe o pista
+  de testare, deci n-ar fi fost nici ce chema, nici ce proba. In locul lui sta un comutator
+  aratat numai in compilarea de depanare.
+- **Pasul 5:** cand nu soseste nimic pe retea, programul intreaba Windows-ul de ce si spune
+  raspunsul (`windows/src/firewall.rs`). Capcana adevarata nu e ca lipseste regula, ci ca
+  reteaua noua facuta de tethering e clasata Publica in timp ce regulile sunt Private, si
+  Windows nu mai intreaba o data fiindca o regula exista deja.
+- **Pasul 6:** cele sapte voci noi au primit poze. Sunt in
+  `windows/app/ui/assets/avatars/<id>.jpg` si in
+  `android/app/src/main/res/drawable-xhdpi/voice_<id>.jpg`, acelasi fisier in ambele locuri,
+  640x480. Iconitele care tineau locul (`i-cave`, `i-water`, `i-ghost`, `i-whisper`,
+  `i-monster`, `i-giant`, `i-phone` si perechile lor `ic_*.xml` de pe Android) au fost sterse:
+  dupa ce o voce are poza, iconita ei nu se mai vede niciodata, iar codul care o tine ar
+  spune ca se vede. Raman cu iconita doar Normal si Megafon, pentru ca nu sunt personaje.
