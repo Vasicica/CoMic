@@ -208,13 +208,13 @@ Ce s-a probat pe fier, pe Pixel 7 cu Android 17:
 Aplicatia se instaleaza, porneste si ramane vie, fara nimic in jurnal.
 Compilarea trece si la debug, si la release, cu teste, lint si R8.
 
-**Ce nu s-a probat cu ochii:** cum arata ecranul. Asta cere telefonul deblocat,
-deci ramane de facut cu mana:
+Probat cu ochii pe telefon deblocat, in aceeasi zi:
 
-- [ ] Titlul nu sta peste ceas si peste bateria din bara de sus.
-- [ ] Barele de jos (gesturi sau butoane) nu acopera bara de file.
-- [ ] Butonul inapoi inchide aplicatia dintr-o apasare, ca pana acum.
+- [x] Titlul nu sta peste ceas si peste bateria din bara de sus.
+- [x] Barele de jos (gesturi sau butoane) nu acopera bara de file.
+- [x] Butonul inapoi duce inapoi dintr-o apasare, ca pana acum.
 - [ ] Pornirea trimiterii cere microfonul si notificarea, ca pana acum.
+      Asta deschide microfonul, deci se face cu mana, cand vrei tu.
 
 Daca ceva din lista e stricat, vinovatul cel mai probabil e `safeDrawingPadding`
 din `ui/ComicApp.kt`: din Android 15 o aplicatie se intinde cu sila sub barele
