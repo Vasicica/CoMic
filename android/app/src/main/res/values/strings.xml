@@ -34,6 +34,8 @@
     <string name="strip_phoneReady">%1$s is connected</string>
     <string name="strip_phoneReadySub">Press Start on the phone to send audio</string>
     <string name="strip_phoneMuted">%1$s is muted</string>
+    <string name="advice_firewallBlocked">Windows Firewall is blocking the phone on %1$s. In Windows network settings, set that network to private.</string>
+    <string name="advice_firewallNoRule">Windows Firewall is not letting CoMic receive connections. Allow it in the Windows Defender Firewall settings.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Phone and PC on the same network.</string>
     <string name="card_wifi_on">Listening on port %1$s. Connect from the phone.</string>

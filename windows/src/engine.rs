@@ -12,19 +12,26 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, RecvTimeoutError, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
 use crate::audio::{self, Processing};
 use crate::control::{self, Peer};
 use crate::effects::{self, VoiceSettings};
+use crate::firewall::{self, Advice};
 use crate::jitter::JitterBuffer;
 use crate::monitor::{self, MicQueue};
 use crate::net;
 
 /// Cat de des publicam starea cand nu vine nicio comanda.
 const STATUS_INTERVAL: Duration = Duration::from_millis(80);
+
+/// Dupa atata liniste intrebam Windows de ce nu soseste nimic.
+///
+/// Destul cat sa nu sarim la concluzii cat timp omul inca umbla pe telefon,
+/// si destul de putin cat sa nu apuci sa te intrebi daca programul e stricat.
+const SILENCE_BEFORE_ADVICE: Duration = Duration::from_secs(8);
 
 /// De unde vine sunetul.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -70,6 +77,9 @@ pub struct Status {
     /// din pachetele UDP ca "se intampla ceva"; acum stie al cui e telefonul,
     /// cat e dus-intorsul si cand a plecat.
     pub phone: Peer,
+    /// De ce nu soseste nimic, cand am asteptat destul ca sa fie ceva de spus.
+    /// Nu e o eroare: noi lucram cum trebuie, altceva ne sta in cale.
+    pub advice: Option<Advice>,
     /// Ultima eroare, in cuvinte pe care le poate citi utilizatorul.
     pub error: Option<String>,
 }
@@ -95,6 +105,12 @@ struct Running {
     /// Starea telefonului, scrisa de firul canalului de control si citita aici.
     /// Lipseste pe ascultarea de proba: acolo nu exista telefon.
     peer: Option<Arc<Mutex<Peer>>>,
+    /// Cand am pornit, ca sa stim de cat timp tace reteaua.
+    started: Instant,
+    /// De ce tace. Se cauta o singura data, pe firul ei, fiindca intrebarea
+    /// catre Windows dureaza aproape o secunda si motorul nu are voie sa stea.
+    advice: Arc<Mutex<Option<Advice>>>,
+    advice_asked: AtomicBool,
     stop_network: Arc<AtomicBool>,
     network_thread: Option<JoinHandle<()>>,
 }
@@ -345,6 +361,9 @@ fn start_running(request: &StartRequest) -> Result<Running, String> {
         processing,
         level,
         peer,
+        started: Instant::now(),
+        advice: Arc::new(Mutex::new(None)),
+        advice_asked: AtomicBool::new(false),
         stop_network,
         network_thread,
     })
@@ -386,6 +405,7 @@ fn publish(running: &Option<Running>, status: &Arc<Mutex<Status>>) {
         status.level = 0.0;
         status.buffered_ms = 0;
         status.phone = Peer::default();
+        status.advice = None;
         return;
     };
 
@@ -406,6 +426,40 @@ fn publish(running: &Option<Running>, status: &Arc<Mutex<Status>>) {
             status.underruns = jitter.stats.underruns;
         }
     }
+
+    ask_why_nothing_arrives(active, &status.phone, status.frames_received);
+    status.advice = active.advice.lock().ok().and_then(|advice| advice.clone());
+}
+
+/// Cand ascultam reteaua si nu soseste nimic, aflam de ce in loc sa tacem.
+///
+/// Conditia e inadins severa: niciun cadru de sunet **si** niciun telefon pe
+/// canalul de control. Daca macar unul din ele a ajuns, drumul e deschis si
+/// Firewall-ul nu e de vina, deci n-avem ce sfat sa dam.
+fn ask_why_nothing_arrives(active: &Running, phone: &Peer, frames: u64) {
+    // `jitter` exista numai cand ascultam reteaua. La ascultarea de proba, de
+    // la microfonul calculatorului, nu e nicio retea de invinuit.
+    let pe_retea = active.jitter.is_some();
+    let liniste = frames == 0 && !phone.connected;
+
+    if !pe_retea || !liniste || active.started.elapsed() < SILENCE_BEFORE_ADVICE {
+        return;
+    }
+    // O singura intrebare pe sesiune: raspunsul nu se schimba de la sine, iar
+    // `publish` trece pe aici de douasprezece ori pe secunda.
+    if active.advice_asked.swap(true, Ordering::Relaxed) {
+        return;
+    }
+
+    let locul = Arc::clone(&active.advice);
+    thread::spawn(move || {
+        let Ok((networks, rules)) = firewall::ask_windows() else {
+            return;
+        };
+        if let Ok(mut locul) = locul.lock() {
+            *locul = firewall::diagnose(&networks, &rules).advice();
+        }
+    });
 }
 
 #[cfg(test)]

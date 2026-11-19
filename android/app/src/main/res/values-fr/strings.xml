@@ -33,6 +33,8 @@
     <string name="strip_phoneReady">%1$s est connecté</string>
     <string name="strip_phoneReadySub">Appuyez sur Démarrer sur le téléphone pour envoyer le son</string>
     <string name="strip_phoneMuted">%1$s est en sourdine</string>
+    <string name="advice_firewallBlocked">Le pare-feu Windows bloque le téléphone sur %1$s. Dans les paramètres réseau, passez ce réseau en privé.</string>
+    <string name="advice_firewallNoRule">Le pare-feu Windows empêche CoMic de recevoir des connexions. Autorisez-le dans les paramètres du pare-feu.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Téléphone et PC sur le même réseau.</string>
     <string name="card_wifi_on">Écoute sur le port %1$s. Connectez-vous depuis le téléphone.</string>

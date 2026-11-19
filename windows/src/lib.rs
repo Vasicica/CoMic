@@ -7,6 +7,7 @@ pub mod audio;
 pub mod control;
 pub mod effects;
 pub mod engine;
+pub mod firewall;
 pub mod jitter;
 pub mod monitor;
 pub mod net;

@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} ist verbunden",
   "strip.phoneReadySub": "Drücke auf dem Telefon auf Start, um Ton zu senden",
   "strip.phoneMuted": "{phone} ist stummgeschaltet",
+  "advice.firewallBlocked": "Die Windows-Firewall blockiert das Telefon in {networks}. Stelle dieses Netzwerk in den Netzwerkeinstellungen auf privat.",
+  "advice.firewallNoRule": "Die Windows-Firewall lässt CoMic keine Verbindungen annehmen. Erlaube es in den Firewall-Einstellungen.",
   "card.wifi.name": "WLAN",
   "card.wifi.off": "Handy und PC im selben Netzwerk.",
   "card.wifi.on": "Höre auf Port {port}. Verbinde dich vom Handy aus.",

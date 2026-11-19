@@ -33,6 +33,8 @@
     <string name="strip_phoneReady">%1$s ist verbunden</string>
     <string name="strip_phoneReadySub">Drücke auf dem Telefon auf Start, um Ton zu senden</string>
     <string name="strip_phoneMuted">%1$s ist stummgeschaltet</string>
+    <string name="advice_firewallBlocked">Die Windows-Firewall blockiert das Telefon in %1$s. Stelle dieses Netzwerk in den Netzwerkeinstellungen auf privat.</string>
+    <string name="advice_firewallNoRule">Die Windows-Firewall lässt CoMic keine Verbindungen annehmen. Erlaube es in den Firewall-Einstellungen.</string>
     <string name="card_wifi_name">WLAN</string>
     <string name="card_wifi_off">Handy und PC im selben Netzwerk.</string>
     <string name="card_wifi_on">Höre auf Port %1$s. Verbinde dich vom Handy aus.</string>

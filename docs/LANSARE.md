@@ -73,9 +73,18 @@ Nu e sfat juridic sau fiscal; la bani si taxe intreaba un contabil din Moldova.
 - [ ] **adb.exe** (pentru USB debugging): binarele Google vin cu licenta SDK Android; citeste-o
       inainte sa-l pui in installer. Alternative: utilizatorul instaleaza Platform Tools singur,
       sau compilezi adb din sursa AOSP (Apache 2.0).
-- [ ] **Firewall-ul Windows** intreaba la prima pornire daca CoMic poate primi conexiuni pe
-      UDP 45678. Daca omul apasa „Cancel”, nu merge nimic si nu stie de ce. Programul trebuie sa
-      detecteze ca nu vine nimic si sa explice ce sa faca.
+- [x] **Firewall-ul Windows.** Facut pe 2026-11-19; vezi `windows/src/firewall.rs`.
+      Dupa opt secunde in care nu soseste nici sunet, nici vreun telefon pe canalul de
+      control, programul intreaba Windows ce retele active are, ce profil au, si ce reguli
+      exista pentru noi. Daca o retea activa nu e acoperita de nicio regula, fereastra o
+      spune pe nume. Raspunsul se cere in JSON, ca sa nu depinda de limba Windows-ului.
+      Se poate rula si de mana: `comic-receiver --check-firewall`.
+
+      Planul initial prevedea un singur caz, „omul a apasat Cancel”. Pe fier adevarat am
+      nimerit altul, mai perfid: regula exista si zicea „permite”, dar era scrisa pentru
+      profilul **Private**, iar partajarea prin USB a adus o retea **noua**, pe care
+      Windows a pus-o implicit pe **Public**. Nu intreaba nimic, fiindca are deja o regula.
+      Simptomul: merge prin aer, tace prin fir. Detectia acopera acum ambele cazuri.
 - [ ] **SmartScreen:** un .exe nesemnat arata „Windows protected your PC”. Multi se sperie.
       Semnarea codului costa; pana atunci, explica pe pagina de descarcare cum treci de mesaj.
 

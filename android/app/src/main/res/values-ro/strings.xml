@@ -33,6 +33,8 @@
     <string name="strip_phoneReady">%1$s e conectat</string>
     <string name="strip_phoneReadySub">Apasă Start pe telefon ca să trimiți sunet</string>
     <string name="strip_phoneMuted">%1$s e pe mut</string>
+    <string name="advice_firewallBlocked">Firewall-ul Windows blochează telefonul pe %1$s. În setările de rețea, pune acea rețea pe privată.</string>
+    <string name="advice_firewallNoRule">Firewall-ul Windows nu lasă CoMic să primească legături. Permite-l în setările Windows Defender Firewall.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Telefonul și PC-ul în aceeași rețea.</string>
     <string name="card_wifi_on">Ascult pe portul %1$s. Conectează-te de pe telefon.</string>

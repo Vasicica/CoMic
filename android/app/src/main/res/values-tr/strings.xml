@@ -33,6 +33,8 @@
     <string name="strip_phoneReady">%1$s bağlandı</string>
     <string name="strip_phoneReadySub">Ses göndermek için telefonda Başlat’a dokunun</string>
     <string name="strip_phoneMuted">%1$s sessizde</string>
+    <string name="advice_firewallBlocked">Windows Güvenlik Duvarı telefonu %1$s ağında engelliyor. Ağ ayarlarında bu ağı özel yapın.</string>
+    <string name="advice_firewallNoRule">Windows Güvenlik Duvarı CoMic uygulamasının bağlantı almasına izin vermiyor. Güvenlik duvarı ayarlarından izin verin.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Telefon ve PC aynı ağda.</string>
     <string name="card_wifi_on">%1$s portu dinleniyor. Telefondan bağlan.</string>

@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} is connected",
   "strip.phoneReadySub": "Press Start on the phone to send audio",
   "strip.phoneMuted": "{phone} is muted",
+  "advice.firewallBlocked": "Windows Firewall is blocking the phone on {networks}. In Windows network settings, set that network to private.",
+  "advice.firewallNoRule": "Windows Firewall is not letting CoMic receive connections. Allow it in the Windows Defender Firewall settings.",
   "card.wifi.name": "Wi-Fi",
   "card.wifi.off": "Phone and PC on the same network.",
   "card.wifi.on": "Listening on port {port}. Connect from the phone.",

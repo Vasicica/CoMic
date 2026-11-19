@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} jest połączony",
   "strip.phoneReadySub": "Naciśnij Start na telefonie, aby wysłać dźwięk",
   "strip.phoneMuted": "{phone} jest wyciszony",
+  "advice.firewallBlocked": "Zapora Windows blokuje telefon w sieci {networks}. W ustawieniach sieci ustaw tę sieć jako prywatną.",
+  "advice.firewallNoRule": "Zapora Windows nie pozwala aplikacji CoMic odbierać połączeń. Zezwól na to w ustawieniach zapory.",
   "card.wifi.name": "Wi-Fi",
   "card.wifi.off": "Telefon i PC w tej samej sieci.",
   "card.wifi.on": "Nasłuchuję na porcie {port}. Połącz się z telefonu.",

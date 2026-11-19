@@ -528,7 +528,7 @@ const state = { view: 'connection', conn: null, voice: 'pirat', pro: true, tune:
 // pachetele UDP ca "se intampla ceva"; acum stie al cui e telefonul, cat e
 // dus-intorsul si cand a plecat. Ramane gol cat timp nu s-a legat nimeni, si
 // pentru telefoanele vechi care nu stiu inca de canal.
-const live = { running: false, source: null, level: 0, bufferedMs: 0, outputDevice: '', phone: null, error: null };
+const live = { running: false, source: null, level: 0, bufferedMs: 0, outputDevice: '', phone: null, advice: null, error: null };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -758,8 +758,17 @@ function render() {
     ? t('strip.streamingInto', { device: live.outputDevice || t('strip.outputDevice') })
     : phone ? t('strip.phoneReady', { phone: phone.name })
     : on ? t('strip.listening') : t('strip.waiting');
+  // Sfatul despre Firewall sta chiar sub eroare, inaintea oricarui alt text:
+  // cand el apare, el e singurul lucru care conteaza pe ecran. Pana acum, in
+  // situatia asta fereastra spunea senin "astept telefonul" la nesfarsit.
+  const sfat = live.advice;
+  const textSfat = !sfat ? null
+    : sfat.kind === 'blocked' ? t('advice.firewallBlocked', { networks: sfat.networks.join(', ') })
+    : t('advice.firewallNoRule');
+
   $('#stream-sub').textContent = live.error
     ? live.error
+    : textSfat ? textSfat
     : phone?.muted ? t('strip.phoneMuted', { phone: phone.name })
     : run ? t('strip.voice', { voice: voiceName(voice) })
     : phone ? t('strip.phoneReadySub')
@@ -1042,6 +1051,9 @@ applyI18n();
     live.outputDevice = status.outputDevice;
     // Un telefon care nu s-a legat pe canal e acelasi lucru cu niciun telefon.
     live.phone = status.phone?.connected ? status.phone : null;
+    // De ce nu soseste nimic. Vine abia dupa cateva secunde de liniste, si
+    // numai cand motorul chiar a intrebat Windows-ul.
+    live.advice = status.advice ?? null;
     live.error = status.error ?? null;
 
     paintMeter(status.running ? status.level : 0);
@@ -1049,7 +1061,7 @@ applyI18n();
     // Textul se rescrie numai cand s-a schimbat ceva: altfel am redesena
     // fereastra de douazeci de ori pe secunda degeaba.
     const signature = [status.running, status.source, status.error, status.bufferedMs, status.voice, status.outputDevice,
-      live.phone?.name, live.phone?.rttMs, live.phone?.muted].join('|');
+      live.phone?.name, live.phone?.rttMs, live.phone?.muted, live.advice?.kind].join('|');
     if (signature !== lastSignature) {
       lastSignature = signature;
       render();

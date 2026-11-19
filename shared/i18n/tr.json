@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} bağlandı",
   "strip.phoneReadySub": "Ses göndermek için telefonda Başlat’a dokunun",
   "strip.phoneMuted": "{phone} sessizde",
+  "advice.firewallBlocked": "Windows Güvenlik Duvarı telefonu {networks} ağında engelliyor. Ağ ayarlarında bu ağı özel yapın.",
+  "advice.firewallNoRule": "Windows Güvenlik Duvarı CoMic uygulamasının bağlantı almasına izin vermiyor. Güvenlik duvarı ayarlarından izin verin.",
   "card.wifi.name": "Wi-Fi",
   "card.wifi.off": "Telefon ve PC aynı ağda.",
   "card.wifi.on": "{port} portu dinleniyor. Telefondan bağlan.",

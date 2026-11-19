@@ -8,6 +8,7 @@ use std::time::Duration;
 
 use comic_core::effects;
 use comic_core::engine::{Engine, Source, StartRequest};
+use comic_core::firewall::{self, Diagnosis};
 use comic_core::{audio, jitter, monitor, net};
 
 struct Options {
@@ -22,6 +23,7 @@ struct Options {
     list_devices: bool,
     list_inputs: bool,
     list_voices: bool,
+    check_firewall: bool,
 }
 
 const USAGE: &str = "\
@@ -51,6 +53,8 @@ Optiuni:
   --list-devices     afiseaza dispozitivele de redare si iese
   --list-inputs      afiseaza microfoanele si iese
   --list-voices      afiseaza vocile disponibile si iese
+  --check-firewall   intreaba Windows daca Firewall-ul lasa telefonul sa ajunga
+                     la noi pe fiecare retea, si iese
   --help             acest mesaj
 ";
 
@@ -66,6 +70,7 @@ fn parse_options() -> Result<Options, String> {
         list_devices: false,
         list_inputs: false,
         list_voices: false,
+        check_firewall: false,
     };
     let mut arguments = std::env::args().skip(1);
 
@@ -118,6 +123,7 @@ fn parse_options() -> Result<Options, String> {
             "--list-devices" => options.list_devices = true,
             "--list-inputs" => options.list_inputs = true,
             "--list-voices" => options.list_voices = true,
+            "--check-firewall" => options.check_firewall = true,
             "--help" | "-h" => {
                 print!("{USAGE}");
                 std::process::exit(0);
@@ -129,6 +135,69 @@ fn parse_options() -> Result<Options, String> {
     Ok(options)
 }
 
+/// Spune ce a raspuns Windows despre propriul lui Firewall.
+///
+/// Mesajul e scris ca pentru cineva care tocmai a apasat Porneste si nu aude
+/// nimic: ce retea, ce profil, si ce comanda rezolva. Nu "verifica Firewall-ul",
+/// care nu i-a ajutat niciodata pe nimeni.
+fn report_firewall() {
+    let (networks, rules) = match firewall::ask_windows() {
+        Ok(raspuns) => raspuns,
+        Err(error) => {
+            eprintln!("Nu am putut intreba Windows: {error}");
+            return;
+        }
+    };
+
+    println!("Retele active:");
+    for network in &networks {
+        println!(
+            "  {} ({}): {}",
+            network.name, network.interface, network.category
+        );
+    }
+
+    println!("\nReguli de Firewall pentru CoMic:");
+    if rules.is_empty() {
+        println!("  (niciuna)");
+    }
+    for rule in &rules {
+        println!("  {} -> {}", rule.name, rule.profiles);
+    }
+
+    println!();
+    match firewall::diagnose(&networks, &rules) {
+        Diagnosis::LooksFine => {
+            println!("Firewall-ul lasa telefonul sa ajunga la noi pe toate retelele active.");
+            println!("Daca tot nu se aude, cauza e in alta parte: adresa gresita pe telefon,");
+            println!("alt port, sau dispozitivul de iesire.");
+        }
+        Diagnosis::NoRule => {
+            println!("Nu exista nicio regula care sa ne lase sa primim legaturi.");
+            println!("Windows a intrebat la prima pornire si raspunsul a fost nu.");
+            println!("Nu mai intreaba a doua oara; regula se adauga de mana.");
+        }
+        Diagnosis::Uncovered(descoperite) => {
+            println!("Firewall-ul blocheaza telefonul pe retelele astea:");
+            for network in &descoperite {
+                println!(
+                    "  \"{}\" ({}) e {}, iar regulile noastre nu acopera profilul asta.",
+                    network.name, network.interface, network.category
+                );
+            }
+            println!("\nAsa se repara, din PowerShell pornit ca administrator:");
+            for network in &descoperite {
+                println!(
+                    "  Set-NetConnectionProfile -InterfaceAlias \"{}\" -NetworkCategory Private",
+                    network.interface
+                );
+            }
+            println!("\nMarcheaza reteaua ca de incredere. Pentru un cablu catre propriul");
+            println!("telefon e potrivit; pentru o retea publica, gandeste-te de doua ori.");
+        }
+    }
+}
+
 fn main() {
     let options = match parse_options() {
         Ok(options) => options,
@@ -137,6 +206,11 @@ fn main() {
             std::process::exit(2);
         }
     };
+
+    if options.check_firewall {
+        report_firewall();
+        return;
+    }
 
     if options.list_devices {
         println!("Dispozitive de redare:");

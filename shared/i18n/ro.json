@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} e conectat",
   "strip.phoneReadySub": "Apasă Start pe telefon ca să trimiți sunet",
   "strip.phoneMuted": "{phone} e pe mut",
+  "advice.firewallBlocked": "Firewall-ul Windows blochează telefonul pe {networks}. În setările de rețea, pune acea rețea pe privată.",
+  "advice.firewallNoRule": "Firewall-ul Windows nu lasă CoMic să primească legături. Permite-l în setările Windows Defender Firewall.",
   "card.wifi.name": "Wi-Fi",
   "card.wifi.off": "Telefonul și PC-ul în aceeași rețea.",
   "card.wifi.on": "Ascult pe portul {port}. Conectează-te de pe telefon.",

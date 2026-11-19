@@ -33,6 +33,8 @@
     <string name="strip_phoneReady">%1$s подключён</string>
     <string name="strip_phoneReadySub">Нажмите «Старт» на телефоне, чтобы пошёл звук</string>
     <string name="strip_phoneMuted">%1$s без звука</string>
+    <string name="advice_firewallBlocked">Брандмауэр Windows блокирует телефон в сети %1$s. В сетевых параметрах сделайте её частной.</string>
+    <string name="advice_firewallNoRule">Брандмауэр Windows не даёт CoMic принимать подключения. Разрешите его в настройках брандмауэра.</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Телефон и ПК в одной сети.</string>
     <string name="card_wifi_on">Слушаю порт %1$s. Подключитесь с телефона.</string>

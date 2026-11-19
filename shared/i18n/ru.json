@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} подключён",
   "strip.phoneReadySub": "Нажмите «Старт» на телефоне, чтобы пошёл звук",
   "strip.phoneMuted": "{phone} без звука",
+  "advice.firewallBlocked": "Брандмауэр Windows блокирует телефон в сети {networks}. В сетевых параметрах сделайте её частной.",
+  "advice.firewallNoRule": "Брандмауэр Windows не даёт CoMic принимать подключения. Разрешите его в настройках брандмауэра.",
   "card.wifi.name": "Wi-Fi",
   "card.wifi.off": "Телефон и ПК в одной сети.",
   "card.wifi.on": "Слушаю порт {port}. Подключитесь с телефона.",

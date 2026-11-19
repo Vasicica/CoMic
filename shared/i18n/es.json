@@ -29,6 +29,8 @@
   "strip.phoneReady": "{phone} está conectado",
   "strip.phoneReadySub": "Pulsa Iniciar en el teléfono para enviar el sonido",
   "strip.phoneMuted": "{phone} está silenciado",
+  "advice.firewallBlocked": "El Firewall de Windows bloquea el teléfono en {networks}. En la configuración de red, marca esa red como privada.",
+  "advice.firewallNoRule": "El Firewall de Windows no deja que CoMic reciba conexiones. Permítelo en la configuración del firewall.",
   "card.wifi.name": "Wi-Fi",
   "card.wifi.off": "Teléfono y PC en la misma red.",
   "card.wifi.on": "Escuchando en el puerto {port}. Conéctate desde el teléfono.",
