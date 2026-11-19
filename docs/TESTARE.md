@@ -124,3 +124,13 @@ Pana acum, in cazul asta telefonul trimitea in gol si nu spunea nimic.
 - [ ] Portul schimbat in Settings (telefon) si Options (PC): canalul merge pe
       noul numar, fiindca foloseste acelasi port ca audio.
 - [ ] USB tethering: canalul merge si pe cablu, nu doar pe Wi-Fi.
+
+**Descoperirea pe doua retele** (adaugat pe 2026-11-19). Telefonul legat si
+prin Wi-Fi, si prin cablu cu partajare USB:
+
+- [ ] Apesi "Cauta calculatoare": acelasi calculator trebuie sa apara de
+      **doua ori**, cu doua adrese (de exemplu `192.168.1.4` si
+      `10.161.32.134`). Doua drumuri catre el, nu doua calculatoare.
+- [ ] Alegi adresa de pe cablu si pornesti: dus-intorsul trebuie sa fie mai
+      mic decat pe Wi-Fi.
+- [ ] Numai Wi-Fi, fara cablu: apare o singura data, ca inainte.
