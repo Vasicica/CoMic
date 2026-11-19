@@ -31,6 +31,14 @@ data class StreamState(
     val level: Float = 0f,
     val framesSent: Long = 0L,
     val target: String = "",
+    /**
+     * Ce se intampla pe canalul de control. `null` cat timp nu trimitem.
+     *
+     * Asta raspunde la intrebarea care pana acum nu avea raspuns pe telefon:
+     * ma aude cineva? Sunetul pleaca si fara canal (un calculator mai vechi nu
+     * stie de el), dar atunci se vede limpede ca pleaca in gol.
+     */
+    val link: LinkState? = null,
     val error: String? = null,
 )
 
@@ -94,6 +102,17 @@ class StreamService : Service() {
             return
         }
 
+        // Canalul de control merge pe firul lui, in paralel cu sunetul.
+        //
+        // Sunetul nu il asteapta. Un calculator mai vechi nu stie de canal, si
+        // ar fi rau sa nu mai mearga deloc cu el; iar daca nu raspunde nimeni,
+        // se vede din starea canalului, limpede, in loc sa ghicesti din tacere.
+        val control = ControlClient(resolved, port) { link ->
+            publish { it.copy(link = link) }
+        }
+        val controlThread = Thread({ control.run { stopping } }, "comic-control")
+            .also { it.start() }
+
         // Nivelul ajunge la interfata de 20 de ori pe secunda, nu de 100: ochiul
         // nu vede diferenta, iar fereastra nu se redeseneaza degeaba.
         var lastLevelAt = 0L
@@ -105,7 +124,16 @@ class StreamService : Service() {
             }
         }
 
-        when (val outcome = streamer.run(resolved, port) { stopping }) {
+        val outcome = streamer.run(resolved, port) { stopping }
+
+        // Canalul se opreste dupa sunet, ca sa apuce sa-si ia ramas bun. Fara
+        // asta calculatorul ar afla ca am plecat abia dupa zece secunde de
+        // tacere, si ar arata un telefon care nu mai e acolo.
+        stopping = true
+        controlThread.join(CONTROL_STOP_MS)
+        publish { it.copy(link = null) }
+
+        when (outcome) {
             is StreamOutcome.Finished -> finish(null, outcome.framesSent)
             is StreamOutcome.Failed -> finish(outcome.reason)
         }
@@ -200,6 +228,15 @@ class StreamService : Service() {
         private const val NOTIFICATION_ID = 1
         private const val LEVEL_INTERVAL_MS = 50L
         private const val STOP_TIMEOUT_MS = 500L
+
+        /**
+         * Cat asteptam canalul de control sa-si ia ramas bun.
+         *
+         * Mai mult decat oprirea sunetului, fiindca aici mai e un mesaj de
+         * trimis pe retea. Dar nu mult: daca reteaua a cazut, calculatorul
+         * tot afla din tacere, iar utilizatorul nu trebuie sa astepte.
+         */
+        private const val CONTROL_STOP_MS = 1_000L
 
         // Starea sta aici pentru ca serviciul si fereastra sunt doua lucruri
         // separate in Android: fereastra poate fi inchisa si redeschisa, iar

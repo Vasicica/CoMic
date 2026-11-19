@@ -172,6 +172,10 @@
     <string name="ph_btNotYet">Bluetooth henüz yapılmadı.</string>
     <string name="ph_sendingTitle">Gönderiyor</string>
     <string name="ph_sendingSub">Mikrofon açık, ses %1$s adresine gidiyor.</string>
+    <string name="ph_link_connecting">Bilgisayara bağlanıyor...</string>
+    <string name="ph_link_heard">%1$s sizi duyuyor</string>
+    <string name="ph_link_silent">%1$s yanıt vermiyor. CoMic bilgisayarda açık mı?</string>
+    <string name="ph_link_refused">Bilgisayar reddetti: %1$s</string>
     <string name="ph_readyPick">Aşağıdan PC\'ni seç, sonra Başlat\'a dokun.</string>
     <string name="ph_sendingToPc">Bu PC\'ye gönderiyor</string>
     <string name="ph_notChosen">seçilmedi</string>

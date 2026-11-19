@@ -172,6 +172,10 @@
     <string name="ph_btNotYet">Bluetooth nu e făcut încă.</string>
     <string name="ph_sendingTitle">Trimite</string>
     <string name="ph_sendingSub">Microfonul e deschis, sunetul merge spre %1$s.</string>
+    <string name="ph_link_connecting">Mă leg la calculator...</string>
+    <string name="ph_link_heard">%1$s te aude</string>
+    <string name="ph_link_silent">Nimeni nu răspunde la %1$s. E CoMic deschis pe calculator?</string>
+    <string name="ph_link_refused">Calculatorul a refuzat: %1$s</string>
     <string name="ph_readyPick">Alege PC-ul de mai jos, apoi apasă Start.</string>
     <string name="ph_sendingToPc">Trimite către acest PC</string>
     <string name="ph_notChosen">neales</string>

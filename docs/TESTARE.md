@@ -99,3 +99,28 @@ apoi `node tools/i18n_build.mjs` din radacina proiectului, apoi construiesti apl
 - [ ] Varianta gratuita: in `windows/app/ui/index.html` pune `pro: false` in `state`,
       reconstruieste si verifica: vocile Pro sunt gri si nu se pot alege, Advanced e blocat
       cu mesajul despre telefon.
+
+## 10. Canalul de control (adaugat pe 2026-11-19)
+
+Pe calculator, partea de protocol are 10 teste automate (`cargo test -p
+comic-receiver control`). Ce urmeaza nu se poate verifica decat cu telefonul
+in mana.
+
+**Cazul care justifica toata lucrarea.** Pe telefon scrii o adresa **gresita**
+(de exemplu `192.168.1.250`, unde nu e nimeni) si apesi Porneste. Subtitlul
+trebuie sa devina **rosu** si sa spuna ca nimeni nu raspunde la adresa aia.
+Pana acum, in cazul asta telefonul trimitea in gol si nu spunea nimic.
+
+- [ ] Adresa buna, CoMic pornit pe PC: subtitlul devine **verde**, "DESKTOP-X
+      te aude", si dupa o secunda apare si dus-intorsul in milisecunde.
+- [ ] Pe PC, bara de jos arata numele telefonului si aceleasi milisecunde,
+      **inainte** sa apesi Porneste pentru sunet.
+- [ ] Adresa buna, dar CoMic **inchis** pe PC: rosu, "nu raspunde nimeni".
+- [ ] Opresti din telefon: pe PC telefonul dispare din bara de jos pe loc,
+      nu dupa zece secunde (asta e mesajul de ramas bun).
+- [ ] Scoti telefonul din priza Wi-Fi (mod avion) cat timp trimite: pe PC
+      telefonul dispare dupa cel mult zece secunde.
+- [ ] Doua telefoane pe rand: al doilea se leaga dupa ce primul pleaca.
+- [ ] Portul schimbat in Settings (telefon) si Options (PC): canalul merge pe
+      noul numar, fiindca foloseste acelasi port ca audio.
+- [ ] USB tethering: canalul merge si pe cablu, nu doar pe Wi-Fi.

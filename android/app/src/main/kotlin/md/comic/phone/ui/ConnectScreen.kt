@@ -57,6 +57,7 @@ import md.comic.phone.device.SystemPages
 import md.comic.phone.protocol.Discovery
 import md.comic.phone.protocol.Packet
 import md.comic.phone.stream.DiscoveryClient
+import md.comic.phone.stream.LinkState
 import md.comic.phone.stream.StreamService
 import md.comic.phone.ui.components.CoMicCard
 import md.comic.phone.ui.components.MonoText
@@ -148,7 +149,7 @@ fun ConnectScreen() {
 
         Spacer(Modifier.height(20.dp))
 
-        Headline(running = state.running, target = state.target, method = method)
+        Headline(running = state.running, target = state.target, method = method, link = state.link)
 
         Spacer(Modifier.height(20.dp))
 
@@ -268,11 +269,21 @@ private fun BigButton(live: Boolean, level: Float, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Headline(running: Boolean, target: String, method: Method) {
+private fun Headline(running: Boolean, target: String, method: Method, link: LinkState?) {
     val title = stringResource(
         if (running) R.string.ph_sendingTitle else R.string.ph_ready_title,
     )
+    // Cat trimitem, subtitlul raspunde la singura intrebare care conteaza aici:
+    // ma aude cineva? Pana la canalul de control nu aveam de unde sti, si
+    // spuneam doar catre ce adresa plecau pachetele, nu daca ajungeau.
     val subtitle = when {
+        link is LinkState.Linked -> {
+            val heard = stringResource(R.string.ph_link_heard, link.pcName)
+            if (link.rttMs == null) heard else "$heard  ·  ${link.rttMs} ms"
+        }
+        link is LinkState.Unreachable -> stringResource(R.string.ph_link_silent, target)
+        link is LinkState.Refused -> stringResource(R.string.ph_link_refused, link.reason)
+        link is LinkState.Connecting -> stringResource(R.string.ph_link_connecting)
         running -> stringResource(R.string.ph_sendingSub, target)
         method == Method.Usb -> stringResource(R.string.ph_ready_usb)
         else -> stringResource(R.string.ph_readyPick)
@@ -281,9 +292,18 @@ private fun Headline(running: Boolean, target: String, method: Method) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // "Nu raspunde nimeni" nu are voie sa arate ca orice alta explicatie
+        // sura: e vestea pentru care ai deschis aplicatia. Iar "te aude" merita
+        // verdele, ca sa se vada dintr-o privire ca totul e in regula.
+        val culoare = when (link) {
+            is LinkState.Unreachable, is LinkState.Refused -> CoMic.Danger
+            is LinkState.Linked -> CoMic.Ok
+            else -> CoMic.Muted
+        }
+
         Text(title, color = CoMic.TextMain, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(4.dp))
-        Text(subtitle, color = CoMic.Muted, fontSize = 13.sp, textAlign = TextAlign.Center)
+        Text(subtitle, color = culoare, fontSize = 13.sp, textAlign = TextAlign.Center)
     }
 }
 

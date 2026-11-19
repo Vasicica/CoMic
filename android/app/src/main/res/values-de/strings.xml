@@ -172,6 +172,10 @@
     <string name="ph_btNotYet">Bluetooth ist noch nicht gebaut.</string>
     <string name="ph_sendingTitle">Sendet</string>
     <string name="ph_sendingSub">Mikrofon offen, der Ton geht an %1$s.</string>
+    <string name="ph_link_connecting">Verbinde mit dem PC...</string>
+    <string name="ph_link_heard">%1$s hört dich</string>
+    <string name="ph_link_silent">Keine Antwort von %1$s. Ist CoMic auf dem PC offen?</string>
+    <string name="ph_link_refused">Der PC hat abgelehnt: %1$s</string>
     <string name="ph_readyPick">Wähle unten deinen PC und tippe auf Start.</string>
     <string name="ph_sendingToPc">Sendet an diesen PC</string>
     <string name="ph_notChosen">nicht gewählt</string>

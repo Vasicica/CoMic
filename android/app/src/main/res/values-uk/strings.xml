@@ -172,6 +172,10 @@
     <string name="ph_btNotYet">Bluetooth ще не зроблено.</string>
     <string name="ph_sendingTitle">Надсилання</string>
     <string name="ph_sendingSub">Мікрофон відкрито, звук іде на %1$s.</string>
+    <string name="ph_link_connecting">З’єднуюся з комп’ютером...</string>
+    <string name="ph_link_heard">%1$s вас чує</string>
+    <string name="ph_link_silent">%1$s не відповідає. CoMic відкритий на комп’ютері?</string>
+    <string name="ph_link_refused">Комп’ютер відмовив: %1$s</string>
     <string name="ph_readyPick">Виберіть комп\'ютер нижче й натисніть «Старт».</string>
     <string name="ph_sendingToPc">Надсилання на цей ПК</string>
     <string name="ph_notChosen">не вибрано</string>

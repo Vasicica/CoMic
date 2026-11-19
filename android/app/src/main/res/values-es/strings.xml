@@ -172,6 +172,10 @@
     <string name="ph_btNotYet">El Bluetooth todavía no está hecho.</string>
     <string name="ph_sendingTitle">Enviando</string>
     <string name="ph_sendingSub">Micrófono abierto, el sonido va a %1$s.</string>
+    <string name="ph_link_connecting">Conectando al PC...</string>
+    <string name="ph_link_heard">%1$s te oye</string>
+    <string name="ph_link_silent">%1$s no responde. ¿Está CoMic abierto en el PC?</string>
+    <string name="ph_link_refused">El PC lo rechazó: %1$s</string>
     <string name="ph_readyPick">Elige tu PC abajo y toca Iniciar.</string>
     <string name="ph_sendingToPc">Enviando a este PC</string>
     <string name="ph_notChosen">sin elegir</string>
