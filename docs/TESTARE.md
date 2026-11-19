@@ -134,3 +134,31 @@ prin Wi-Fi, si prin cablu cu partajare USB:
 - [ ] Alegi adresa de pe cablu si pornesti: dus-intorsul trebuie sa fie mai
       mic decat pe Wi-Fi.
 - [ ] Numai Wi-Fi, fara cablu: apare o singura data, ca inainte.
+
+**Capcana Firewall la partajarea prin USB** (gasita pe 2026-11-19, pe fier
+adevarat). Cand pornesti partajarea prin USB, Windows vede o retea **noua** si
+o clasifica implicit **Public**. Regulile noastre de Firewall sunt scrise
+pentru profilul **Private**, deci pe cablu se blocheaza tot: ping, descoperire,
+sunet si canal de control. Pe Wi-Fi merge mai departe, ceea ce face capcana si
+mai derutanta: "merge prin aer, tace prin fir".
+
+Semnul sigur: `adb shell ping -c 2 <adresa PC pe cablu>` da 100% pierdere, desi
+ambele capete au adrese in aceeasi retea.
+
+Se verifica si se repara asa, pe calculator:
+
+    Get-NetConnectionProfile                       # ce profil are fiecare retea
+    Set-NetConnectionProfile -InterfaceAlias "Ethernet 3" -NetworkCategory Private
+
+Atentie la care placa: cea de USB e "UsbNcm Host Device", nu placa obisnuita
+de retea. Comanda cere PowerShell pornit ca administrator.
+
+**Masurat dupa reparatie** (Pixel 7, acelasi calculator, 10 pachete):
+
+| Drum | Medie | Minim | Maxim | Zbatere |
+|---|---|---|---|---|
+| Cablu (USB) | 1,15 ms | 0,68 | 1,87 | **0,33** |
+| Wi-Fi | 9,62 ms | 3,43 | 15,84 | 3,53 |
+
+Zbaterea conteaza mai mult decat media: ea e ce trebuie sa inghita rezerva de
+jitter. Pe cablu se poate cobora rezerva mult sub ce suporta Wi-Fi-ul.
