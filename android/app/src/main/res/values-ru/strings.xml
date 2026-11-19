@@ -249,6 +249,8 @@
     <string name="set_account">Аккаунт</string>
     <string name="set_pro">CoMic Pro</string>
     <string name="set_planFree">Бесплатно: микрофон, все подключения, 2 голоса</string>
+    <string name="set_proDebug">Открыть Pro (тестовая сборка)</string>
+    <string name="set_proDebugHint">Только в отладочной сборке, пока не подключена оплата через Google Play. Сообщает компьютеру, что Pro включён.</string>
     <string name="set_planPro">Активно: все голоса и тонкая настройка</string>
     <string name="set_upgrade">Перейти на Pro</string>
     <string name="set_manage">Управлять</string>

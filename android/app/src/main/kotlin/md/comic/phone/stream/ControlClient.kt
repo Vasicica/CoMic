@@ -28,6 +28,12 @@ import org.json.JSONObject
 class ControlClient(
     private val address: InetAddress,
     private val port: Int,
+    /**
+     * A cumparat omul Pro? Intrebare, nu valoare: o punem la fiecare rotire a
+     * buclei, ca o cumparatura facuta in timp ce transmiti sa ajunga la
+     * calculator pe loc, fara sa inchizi si sa redeschizi.
+     */
+    private val proNow: () -> Boolean,
     private val onState: (LinkState) -> Unit,
 ) {
 
@@ -83,11 +89,13 @@ class ControlClient(
                     .put("v", VERSION)
                     .put("name", phoneName())
                     .put("rate", 48_000)
-                    .put("codec", "pcm"),
+                    .put("codec", "pcm")
+                    .put("pro", proNow()),
             ),
         )
         out.flush()
 
+        var proTrimis = proNow()
         var pc = ""
         var audioPort = port
         var rtt: Int? = null
@@ -101,6 +109,15 @@ class ControlClient(
                 out.write(line(JSONObject().put("t", "mute").put("on", muted)))
                 out.flush()
                 mutedSent = true
+            }
+
+            // Si cumparatura la fel: daca omul tocmai a luat Pro, vocile i se
+            // deschid pe calculator cat inca vorbeste.
+            val proAcum = proNow()
+            if (proAcum != proTrimis) {
+                out.write(line(JSONObject().put("t", "pro").put("on", proAcum)))
+                out.flush()
+                proTrimis = proAcum
             }
 
             val now = System.currentTimeMillis()

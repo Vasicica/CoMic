@@ -517,10 +517,16 @@ const CONN = {
   bt:   { label: 'Bluetooth', detail: 'BT',   icon: 'i-bt'    },
   ip:   { label: 'IP',        detail: '',     icon: 'i-globe' },
 };
-// pro: TODO licenta. Cumparatura se face pe telefon (Google Play) si telefonul
-// o anunta PC-ului pe canalul de control. Pana exista asta, totul e deblocat,
-// ca sa poti testa toate vocile. Pune `false` ca sa vezi cum arata gratuit.
-const state = { view: 'connection', conn: null, voice: 'pirat', pro: true, tune: {} };
+// `pro` nu mai e scris cu mana. Cumparatura se face pe telefon, prin Google
+// Play, deci telefonul e singurul care stie; el o spune pe canalul de control,
+// iar calculatorul tine minte ce i-a zis ultimul telefon (in prefs.json).
+//
+// De ce tine minte si nu intreaba de fiecare data: altfel vocile s-ar incuia
+// ori de cate ori telefonul nu e legat, inclusiv la ascultarea de proba cu
+// microfonul calculatorului, unde niciun telefon nu are ce cauta.
+//
+// Porneste pe `false`: pana vorbeste cineva, nu presupunem ca s-a platit.
+const state = { view: 'connection', conn: null, voice: 'pirat', pro: false, tune: {} };
 // Oglinda starii motorului. Pana la prima citire a comenzii `status`,
 // fereastra arata valori neutre; dupa aceea tot ce scrie in banda de sus si
 // in bara de jos vine din Rust, nu din presupunerile interfetei.
@@ -935,7 +941,24 @@ applyI18n();
   const prefsReady = send('read_prefs').then((saved) => {
     if (saved) prefs = saved;
     paintSwitches();
+    // Ce a spus ultimul telefon despre Pro, pana vorbeste unul nou.
+    state.pro = prefs.pro;
+    render();
   });
+
+  // Pro vine de la telefon si se tine minte pe disc.
+  //
+  // Cat timp un telefon e legat, el are ultimul cuvant: daca tocmai a
+  // cumparat, vocile se deschid pe loc, fara sa inchizi nimic. Cand pleaca,
+  // ramane ce ne-a spus ultima oara.
+  const followPro = () => {
+    if (live.phone && live.phone.pro !== prefs.pro) {
+      // Scrierea trece prin acelasi drum ca orice preferinta, deci si
+      // comutatoarele raman in pas cu ce e pe disc.
+      applyPrefs({ ...prefs, pro: live.phone.pro });
+    }
+    state.pro = live.phone ? live.phone.pro : prefs.pro;
+  };
 
   // Ascultarea la deschidere are nevoie sa fi venit intai lista de dispozitive
   // si catalogul de voci: altfel cererea ar pleca cu dispozitivul scris in
@@ -1058,10 +1081,15 @@ applyI18n();
 
     paintMeter(status.running ? status.level : 0);
 
+    // Inainte de semnatura: daca telefonul a schimbat Pro, `state.pro` trebuie
+    // sa fie deja nou cand ne uitam daca s-a schimbat ceva de desenat.
+    followPro();
+
     // Textul se rescrie numai cand s-a schimbat ceva: altfel am redesena
     // fereastra de douazeci de ori pe secunda degeaba.
     const signature = [status.running, status.source, status.error, status.bufferedMs, status.voice, status.outputDevice,
-      live.phone?.name, live.phone?.rttMs, live.phone?.muted, live.advice?.kind].join('|');
+      live.phone?.name, live.phone?.rttMs, live.phone?.muted, live.advice?.kind,
+      state.pro].join('|');
     if (signature !== lastSignature) {
       lastSignature = signature;
       render();

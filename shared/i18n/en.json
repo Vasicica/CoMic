@@ -253,6 +253,8 @@
   "set.account": "Account",
   "set.pro": "CoMic Pro",
   "set.planFree": "Free: microphone, all connections, 2 voices",
+  "set.proDebug": "Unlock Pro (test build)",
+  "set.proDebugHint": "Only in the debug build, until Google Play billing is wired up. Tells the PC that Pro is on.",
   "set.planPro": "Active: all voices and fine-tuning",
   "set.upgrade": "Upgrade",
   "set.manage": "Manage",

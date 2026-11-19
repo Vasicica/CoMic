@@ -250,6 +250,8 @@
     <string name="set_account">Account</string>
     <string name="set_pro">CoMic Pro</string>
     <string name="set_planFree">Free: microphone, all connections, 2 voices</string>
+    <string name="set_proDebug">Unlock Pro (test build)</string>
+    <string name="set_proDebugHint">Only in the debug build, until Google Play billing is wired up. Tells the PC that Pro is on.</string>
     <string name="set_planPro">Active: all voices and fine-tuning</string>
     <string name="set_upgrade">Upgrade</string>
     <string name="set_manage">Manage</string>

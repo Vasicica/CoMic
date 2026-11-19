@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import md.comic.phone.MainActivity
 import md.comic.phone.R
 import md.comic.phone.device.AppLanguage
+import md.comic.phone.device.Prefs
 
 /** Ce vede interfata despre trimitere. */
 data class StreamState(
@@ -107,7 +108,14 @@ class StreamService : Service() {
         // Sunetul nu il asteapta. Un calculator mai vechi nu stie de canal, si
         // ar fi rau sa nu mai mearga deloc cu el; iar daca nu raspunde nimeni,
         // se vede din starea canalului, limpede, in loc sa ghicesti din tacere.
-        val control = ControlClient(resolved, port) { link ->
+        // Pro se citeste la fiecare rotire, nu o data: asa o cumparatura facuta
+        // in timp ce transmiti ajunge la calculator fara sa inchizi nimic.
+        val prefs = Prefs.of(this)
+        val control = ControlClient(
+            address = resolved,
+            port = port,
+            proNow = { prefs.getBoolean(Prefs.PRO, false) },
+        ) { link ->
             publish { it.copy(link = link) }
         }
         val controlThread = Thread({ control.run { stopping } }, "comic-control")

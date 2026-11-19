@@ -253,6 +253,8 @@
   "set.account": "Hesap",
   "set.pro": "CoMic Pro",
   "set.planFree": "Ücretsiz: mikrofon, tüm bağlantılar, 2 ses",
+  "set.proDebug": "Pro kilidini aç (test sürümü)",
+  "set.proDebugHint": "Yalnızca hata ayıklama sürümünde, Google Play ödemesi bağlanana kadar. Bilgisayara Pro açık olduğunu bildirir.",
   "set.planPro": "Etkin: tüm sesler ve ince ayar",
   "set.upgrade": "Pro'ya geç",
   "set.manage": "Yönet",

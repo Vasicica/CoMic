@@ -249,6 +249,8 @@
     <string name="set_account">Compte</string>
     <string name="set_pro">CoMic Pro</string>
     <string name="set_planFree">Gratuit : micro, toutes les connexions, 2 voix</string>
+    <string name="set_proDebug">Débloquer Pro (version de test)</string>
+    <string name="set_proDebugHint">Uniquement dans la version de débogage, en attendant le paiement Google Play. Indique au PC que Pro est actif.</string>
     <string name="set_planPro">Actif : toutes les voix et le réglage fin</string>
     <string name="set_upgrade">Passer à Pro</string>
     <string name="set_manage">Gérer</string>

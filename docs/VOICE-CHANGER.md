@@ -14,6 +14,19 @@
 - Vocea se schimba **de pe ambele dispozitive**, telefon si PC.
 - Pro se cumpara **numai pe telefon**, prin Google Play Billing. Telefonul anunta PC-ul pe
   canalul de control (criptat). PC-ul nu are sistem de plata propriu.
+
+  **Starea calatoreste deja** (2026-11-19). Telefonul trimite `pro` in salutul de pe
+  canalul de control, si un mesaj `pro` cand se schimba in timpul sesiunii, ca o
+  cumparatura facuta in timp ce transmiti sa deschida vocile pe loc. PC-ul tine minte
+  ce i-a spus ultimul telefon, in `prefs.json`: altfel vocile s-ar incuia ori de cate
+  ori telefonul nu e legat, inclusiv la ascultarea de proba cu microfonul propriu.
+  Un telefon care nu trimite campul nu primeste Pro pe gratis: lipsa inseamna nu.
+
+  **Cumparatura inca nu exista.** Google Play Billing cere cont de Play Console, doua
+  produse create acolo si o compilare semnata urcata pe o pista de testare. Pana atunci,
+  in locul ei sta un comutator in Settings, aratat **numai in compilarea de depanare**
+  (`BuildConfig.DEBUG`), ca drumul sa poata fi incercat acum. Cand vine Billing, el scrie
+  in aceeasi cheie si comutatorul dispare singur.
 - Diferenta fata de WO Mic ramane argumentul principal: **microfonul e gratuit si nelimitat**.
 
 ## Pretul (propunere, de confirmat)

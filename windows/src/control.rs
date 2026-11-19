@@ -77,6 +77,11 @@ pub enum FromPhone {
         rate: u32,
         #[serde(default)]
         codec: String,
+        /// A cumparat omul Pro? Cumparatura se face pe telefon, prin Google
+        /// Play, deci telefonul e singurul care stie. Un telefon mai vechi nu
+        /// trimite campul, si atunci raspunsul e nu, ceea ce e si prudent.
+        #[serde(default)]
+        pro: bool,
     },
     /// Bataia de inima. `rtt` e ce a masurat telefonul la dus-intorsul anterior.
     Ping {
@@ -86,6 +91,13 @@ pub enum FromPhone {
         rtt: Option<u32>,
     },
     Mute {
+        #[serde(default)]
+        on: bool,
+    },
+    /// Pro s-a schimbat in timpul sesiunii: omul tocmai a cumparat, sau si-a
+    /// adus cumparatura inapoi pe un telefon nou. Fara mesajul asta ar trebui
+    /// sa inchida si sa redeschida ca sa se vada schimbarea.
+    Pro {
         #[serde(default)]
         on: bool,
     },
@@ -124,6 +136,9 @@ pub struct Peer {
     /// Dus-intorsul masurat de telefon, in milisecunde.
     pub rtt_ms: Option<u32>,
     pub muted: bool,
+    /// Ce a spus telefonul despre Pro. Cumparatura se face acolo, prin Google
+    /// Play; calculatorul nu are plata proprie si nu verifica nimic singur.
+    pub pro: bool,
 }
 
 /// Desface o linie primita de la telefon.
@@ -300,7 +315,7 @@ fn handle(message: &FromPhone, reply: Reply<'_>) -> bool {
     } = reply;
 
     match message {
-        FromPhone::Hello { .. } => match answer_hello(message, pc_name, audio_port) {
+        FromPhone::Hello { pro, .. } => match answer_hello(message, pc_name, audio_port) {
             Ok((phone, answer)) => {
                 if stream.write_all(encode(&answer).as_bytes()).is_err() {
                     return false;
@@ -313,6 +328,7 @@ fn handle(message: &FromPhone, reply: Reply<'_>) -> bool {
                         address: address.ip().to_string(),
                         rtt_ms: None,
                         muted: false,
+                        pro: *pro,
                     };
                 });
                 *greeted = true;
@@ -335,6 +351,14 @@ fn handle(message: &FromPhone, reply: Reply<'_>) -> bool {
         }
         FromPhone::Mute { on } => {
             update(peer, |peer| peer.muted = *on);
+            true
+        }
+        FromPhone::Pro { on } => {
+            println!(
+                "[control] telefonul spune ca Pro e {}",
+                if *on { "pornit" } else { "oprit" }
+            );
+            update(peer, |peer| peer.pro = *on);
             true
         }
         FromPhone::Bye => {
@@ -413,6 +437,7 @@ mod tests {
             name: name.to_string(),
             rate: 48_000,
             codec: "pcm".to_string(),
+            pro: false,
         }
     }
 
@@ -496,11 +521,44 @@ mod tests {
     }
 
     #[test]
+    fn hears_pro_in_the_greeting() {
+        let line = r#"{"t":"hello","v":1,"name":"Pixel 7","rate":48000,"codec":"pcm","pro":true}"#;
+
+        let FromPhone::Hello { pro, .. } = parse_line(line).expect("salut valid") else {
+            panic!("asteptam un salut");
+        };
+
+        assert!(pro);
+    }
+
+    #[test]
+    fn a_phone_that_never_heard_of_pro_does_not_get_it_for_free() {
+        // Un telefon mai vechi nu trimite campul. Lipsa lui inseamna nu, nu da.
+        let FromPhone::Hello { pro, .. } =
+            parse_line(r#"{"t":"hello","v":1,"name":"Vechi"}"#).expect("salut valid")
+        else {
+            panic!("asteptam un salut");
+        };
+
+        assert!(!pro, "lipsa campului nu are voie sa deschida vocile Pro");
+    }
+
+    #[test]
+    fn hears_pro_change_in_the_middle_of_a_session() {
+        // Omul tocmai a cumparat; nu are de ce sa inchida si sa redeschida.
+        assert_eq!(
+            parse_line(r#"{"t":"pro","on":true}"#),
+            Ok(FromPhone::Pro { on: true })
+        );
+    }
+
+    #[test]
     fn a_fresh_peer_is_nobody() {
         let peer = Peer::default();
 
         assert!(!peer.connected);
         assert!(peer.name.is_empty());
         assert_eq!(peer.rtt_ms, None);
+        assert!(!peer.pro, "fara telefon nu stim nimic despre Pro");
     }
 }

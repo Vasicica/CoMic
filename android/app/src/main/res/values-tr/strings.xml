@@ -249,6 +249,8 @@
     <string name="set_account">Hesap</string>
     <string name="set_pro">CoMic Pro</string>
     <string name="set_planFree">Ücretsiz: mikrofon, tüm bağlantılar, 2 ses</string>
+    <string name="set_proDebug">Pro kilidini aç (test sürümü)</string>
+    <string name="set_proDebugHint">Yalnızca hata ayıklama sürümünde, Google Play ödemesi bağlanana kadar. Bilgisayara Pro açık olduğunu bildirir.</string>
     <string name="set_planPro">Etkin: tüm sesler ve ince ayar</string>
     <string name="set_upgrade">Pro\'ya geç</string>
     <string name="set_manage">Yönet</string>

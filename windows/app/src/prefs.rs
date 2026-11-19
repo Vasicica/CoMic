@@ -33,6 +33,13 @@ pub struct Prefs {
     pub minimize_to_tray: bool,
     /// Porneste ascultarea imediat ce fereastra se deschide.
     pub listen_on_launch: bool,
+    /// Ce a spus ultimul telefon despre Pro.
+    ///
+    /// Cumparatura se face pe telefon, prin Google Play; calculatorul nu are
+    /// plata proprie. Dar daca n-ar tine minte, vocile s-ar incuia de fiecare
+    /// data cand telefonul nu e legat, inclusiv la ascultarea de proba cu
+    /// microfonul calculatorului. Deci: telefonul spune, calculatorul retine.
+    pub pro: bool,
 }
 
 /// Preferintele incarcate in memorie, plus locul de pe disc unde se scriu.
@@ -131,12 +138,40 @@ mod tests {
             launch_at_startup: true,
             minimize_to_tray: false,
             listen_on_launch: true,
+            pro: true,
         };
 
         PrefsStore::load(path.clone()).set(dorit).unwrap();
         let reincarcat = PrefsStore::load(path);
 
         assert_eq!(reincarcat.get(), dorit);
+    }
+
+    #[test]
+    fn remembers_what_the_phone_said_about_pro() {
+        let path = cale_de_test("pro");
+
+        PrefsStore::load(path.clone())
+            .set(Prefs {
+                pro: true,
+                ..Prefs::default()
+            })
+            .unwrap();
+
+        assert!(PrefsStore::load(path).get().pro);
+    }
+
+    #[test]
+    fn an_older_file_does_not_hand_out_pro() {
+        // Fisier scris inainte sa existe campul. Lipsa lui inseamna nu.
+        let path = cale_de_test("fara-pro");
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, r#"{"minimizeToTray":true}"#).unwrap();
+
+        let store = PrefsStore::load(path);
+
+        assert!(store.get().minimize_to_tray);
+        assert!(!store.get().pro, "nu dam Pro pe gratis unui fisier vechi");
     }
 
     #[test]

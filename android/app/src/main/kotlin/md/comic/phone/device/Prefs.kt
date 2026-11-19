@@ -17,6 +17,19 @@ object Prefs {
     const val PORT = "port"
     const val LANGUAGE = "lang"
 
+    /**
+     * A cumparat omul Pro?
+     *
+     * Aici e singurul loc din tot proiectul care stie raspunsul: cumparatura se
+     * face pe telefon, prin Google Play, iar calculatorul afla de la noi, pe
+     * canalul de control. El nu are plata proprie si nu verifica nimic singur.
+     *
+     * Deocamdata nimic nu scrie aici in afara comutatorului din Settings, care
+     * exista numai in compilarea de depanare. Cand vine Google Play Billing, el
+     * ia locul comutatorului; restul drumului e deja scris si incercat.
+     */
+    const val PRO = "pro"
+
     fun of(context: Context): SharedPreferences =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 }

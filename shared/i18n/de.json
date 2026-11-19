@@ -253,6 +253,8 @@
   "set.account": "Konto",
   "set.pro": "CoMic Pro",
   "set.planFree": "Gratis: Mikrofon, alle Verbindungen, 2 Stimmen",
+  "set.proDebug": "Pro freischalten (Testversion)",
+  "set.proDebugHint": "Nur in der Debug-Version, bis die Google-Play-Bezahlung angebunden ist. Sagt dem PC, dass Pro an ist.",
   "set.planPro": "Aktiv: alle Stimmen und Feineinstellung",
   "set.upgrade": "Pro holen",
   "set.manage": "Verwalten",

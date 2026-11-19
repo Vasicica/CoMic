@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import md.comic.phone.BuildConfig
 import md.comic.phone.R
 import md.comic.phone.device.AppLanguage
 import md.comic.phone.device.Prefs
@@ -253,6 +254,41 @@ private fun AccountGroup() {
         SettingRow(stringResource(R.string.set_help), notYet = true) {}
         Separator()
         SettingRow(stringResource(R.string.set_about), notYet = true) {}
+        ProTestSwitch()
+    }
+}
+
+/**
+ * Comutatorul care tine locul cumparaturii, pana exista Google Play Billing.
+ *
+ * **Numai in compilarea de depanare.** `BuildConfig.DEBUG` e fals in orice
+ * compilare de lansare, deci randul asta nu exista in aplicatia pe care o ia
+ * cineva din magazin. Un buton "deblocheaza Pro" intr-un produs vandut ar fi,
+ * evident, o gluma proasta.
+ *
+ * Rostul lui: drumul de la telefon la calculator e scris si trebuie incercat
+ * acum, nu peste luni, cand se deschide contul de Play Console. Cand vine
+ * Billing, el scrie in aceeasi cheie si randul asta dispare singur.
+ */
+@Composable
+private fun ProTestSwitch() {
+    if (!BuildConfig.DEBUG) return
+
+    val context = LocalContext.current
+    var pro by remember { mutableStateOf(Prefs.of(context).getBoolean(Prefs.PRO, false)) }
+
+    Separator()
+    SettingRow(
+        stringResource(R.string.set_proDebug),
+        hint = stringResource(R.string.set_proDebugHint),
+    ) {
+        Switch(
+            checked = pro,
+            onCheckedChange = { pornit ->
+                pro = pornit
+                Prefs.of(context).edit().putBoolean(Prefs.PRO, pornit).apply()
+            },
+        )
     }
 }
 

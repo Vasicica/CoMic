@@ -253,6 +253,8 @@
   "set.account": "Cont",
   "set.pro": "CoMic Pro",
   "set.planFree": "Gratuit: microfon, toate conexiunile, 2 voci",
+  "set.proDebug": "Deblochează Pro (versiune de probă)",
+  "set.proDebugHint": "Doar în versiunea de depanare, până se leagă plata prin Google Play. Anunță calculatorul că Pro e pornit.",
   "set.planPro": "Activ: toate vocile și reglajul fin",
   "set.upgrade": "Treci la Pro",
   "set.manage": "Gestionează",

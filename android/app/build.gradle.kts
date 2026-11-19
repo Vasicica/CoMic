@@ -39,6 +39,11 @@ android {
 
     buildFeatures {
         compose = true
+        // Ne trebuie pentru BuildConfig.DEBUG, care decide daca se vede
+        // comutatorul de proba pentru Pro (vezi ui/SettingsScreen.kt).
+        // Verificarea e la compilare, deci randul acela nu ajunge deloc in
+        // aplicatia de lansare, nu doar ascuns in ea.
+        buildConfig = true
     }
 
     // Sursele stau in kotlin/, nu in java/.

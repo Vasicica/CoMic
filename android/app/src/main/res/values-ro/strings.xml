@@ -249,6 +249,8 @@
     <string name="set_account">Cont</string>
     <string name="set_pro">CoMic Pro</string>
     <string name="set_planFree">Gratuit: microfon, toate conexiunile, 2 voci</string>
+    <string name="set_proDebug">Deblochează Pro (versiune de probă)</string>
+    <string name="set_proDebugHint">Doar în versiunea de depanare, până se leagă plata prin Google Play. Anunță calculatorul că Pro e pornit.</string>
     <string name="set_planPro">Activ: toate vocile și reglajul fin</string>
     <string name="set_upgrade">Treci la Pro</string>
     <string name="set_manage">Gestionează</string>
