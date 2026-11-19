@@ -16,8 +16,15 @@ Nu e sfat juridic sau fiscal; la bani si taxe intreaba un contabil din Moldova.
 
 ## 2. Cerinte tehnice Android
 
-- [ ] **targetSdk = 36** (Android 16). Obligatoriu pentru aplicatii noi din 31 august 2026.
+- [x] **targetSdk = 36** (Android 16). Obligatoriu pentru aplicatii noi din 31 august 2026.
       https://developer.android.com/google/play/requirements/target-sdk
+      Facut pe 2026-11-19, impreuna cu `compileSdk = 36`. Nimic nu a trebuit schimbat in
+      cod: marginile ecranului le ceream deja singuri (`safeDrawingPadding` in
+      `ui/ComicApp.kt`), butonul inapoi nu il prindem nicaieri, cod nativ nu avem, iar
+      orientarea nu o fortam. **A ramas o atentionare:** AGP 8.7.3 a fost probat pana la
+      `compileSdk = 35` si o spune la fiecare compilare. Nu e ascunsa cu
+      `android.suppressUnsupportedCompileSdk`, fiindca spune adevarul. Dispare singura cand
+      se ridica AGP la 8.9 sau mai nou, care cere si Gradle 8.11.1 sau mai nou.
 - [ ] **Declaratia pentru serviciul in prim-plan de tip microfon** (App content in Play Console):
       descrierea functiei, ce se intampla daca sistemul il opreste, **un video** in care
       utilizatorul apasa Start si porneste microfonul, cazul de utilizare

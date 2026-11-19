@@ -6,14 +6,24 @@ plugins {
 
 android {
     namespace = "md.comic.phone"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "md.comic.phone"
         // Android 7.0. Mai jos nu are rost: AudioRecord si UDP merg si pe mai
         // vechi, dar telefoanele de dinainte de 2016 nu mai primesc actualizari.
         minSdk = 24
-        targetSdk = 35
+        // Android 16. Google nu primeste aplicatii noi care tintesc mai jos,
+        // din 31 august 2026 (vezi docs/LANSARE.md). `targetSdk` nu e o
+        // formalitate: Android isi schimba purtarea dupa el, nu dupa ce
+        // telefon ai. Ce ne-ar fi atins din Android 16 si de ce nu ne atinge:
+        //   - marginile ecranului se iau cu sila: le ceream oricum singuri,
+        //     cu safeDrawingPadding (vezi ui/ComicApp.kt);
+        //   - butonul inapoi cu previziune se aprinde singur: nu il prindem
+        //     nicaieri, deci nu avem ce strica;
+        //   - paginile de 16 KB pentru cod nativ: nu avem cod nativ;
+        //   - orientarea fortata se ignora pe ecrane mari: nu o fortam.
+        targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
     }

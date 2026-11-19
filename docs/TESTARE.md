@@ -197,3 +197,25 @@ isi are perechea lui de ascultare, pe care nu asculta nimeni din intamplare.
 - [ ] Textul se schimba odata cu limba, fara repornire.
 - [ ] Cu VB-Cable instalat, cardul **nu** apare, iar lista de dispozitive din
       Optiuni are deja ales capatul din randul „Microfonul virtual”.
+
+## 12. targetSdk 36 (adaugat pe 2026-11-19)
+
+Ce s-a probat pe fier, pe Pixel 7 cu Android 17:
+
+    adb shell dumpsys package md.comic.phone | grep targetSdk
+    -> versionCode=1 minSdk=24 targetSdk=36
+
+Aplicatia se instaleaza, porneste si ramane vie, fara nimic in jurnal.
+Compilarea trece si la debug, si la release, cu teste, lint si R8.
+
+**Ce nu s-a probat cu ochii:** cum arata ecranul. Asta cere telefonul deblocat,
+deci ramane de facut cu mana:
+
+- [ ] Titlul nu sta peste ceas si peste bateria din bara de sus.
+- [ ] Barele de jos (gesturi sau butoane) nu acopera bara de file.
+- [ ] Butonul inapoi inchide aplicatia dintr-o apasare, ca pana acum.
+- [ ] Pornirea trimiterii cere microfonul si notificarea, ca pana acum.
+
+Daca ceva din lista e stricat, vinovatul cel mai probabil e `safeDrawingPadding`
+din `ui/ComicApp.kt`: din Android 15 o aplicatie se intinde cu sila sub barele
+de sistem, iar din Android 16 nu mai exista nici macar portita de a refuza.

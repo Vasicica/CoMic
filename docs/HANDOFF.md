@@ -148,3 +148,9 @@ Chei noi de traducere: 32, in `ph.*` si `on`. Scoasa: `ph.soonSettings`.
   numai fiindca fereastra alegea singura din lista, cu o cautare mai larga. Acum hotaraste
   un singur loc (`audio::virtual_mic_name`), recunoasterea se tine de producatorul
   driverului, si se ocoleste capatul cu saisprezece canale. Vezi `docs/TESTARE.md` sectiunea 11.
+- **targetSdk 36** (Android 16), cerut de Google pentru aplicatii noi din 31 august 2026.
+  Nimic in cod nu a trebuit schimbat: cele patru schimbari de purtare din Android 16 care ne-ar
+  fi putut atinge nu ne ating, si motivul e scris langa cifra, in `app/build.gradle.kts`.
+  A ramas o atentionare de la AGP 8.7.3, probat doar pana la `compileSdk = 35`; nu e ascunsa,
+  si dispare cand se ridica AGP la 8.9+ (care cere Gradle 8.11.1+). Vezi `docs/TESTARE.md`
+  sectiunea 12 pentru ce a ramas de probat cu ochii, pe telefon deblocat.
