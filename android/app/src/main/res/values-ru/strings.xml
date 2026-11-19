@@ -193,12 +193,11 @@
     <string name="ph_statSent">Отправлено</string>
     <string name="ph_statTo">Куда</string>
     <string name="ph_secondsShort">%1$s с</string>
-    <string name="ph_noLoopback">CoMic пока не может подтвердить, что ПК это слышит. Телефон только отправляет. Канал управления TCP замкнёт круг.</string>
     <string name="ph_notYet">Пока нет</string>
     <string name="ph_underConstruction">В работе</string>
-    <string name="ph_soonEffects">Ещё не сделано. Чтобы выбирать голос с телефона, нужен канал управления TCP: сейчас телефон только шлёт звук в одну сторону и никак не может сказать ПК ни слова. Пока меняйте голос в CoMic на ПК.</string>
+    <string name="ph_soonEffects">Пока не сделано. Канал управления уже есть, но смену голоса с телефона ещё предстоит написать. А пока меняйте её в CoMic на компьютере.</string>
     <string name="ph_voiceList">Голоса на вашем ПК</string>
-    <string name="ph_tuneOnPc">Они живут на ПК. Телефон не может их ни прочитать, ни подвинуть, пока нет канала управления.</string>
+    <string name="ph_tuneOnPc">Они живут на компьютере. Менять их с телефона пока не сделано.</string>
     <string name="pro_title">Каждый голос под себя</string>
     <string name="pro_perk1">Все голоса и новые в обновлениях</string>
     <string name="pro_perk2">Высота, искажение, дрожание и другое</string>

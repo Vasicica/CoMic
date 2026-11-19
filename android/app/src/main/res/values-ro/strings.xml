@@ -193,12 +193,11 @@
     <string name="ph_statSent">Trimis</string>
     <string name="ph_statTo">Către</string>
     <string name="ph_secondsShort">%1$s s</string>
-    <string name="ph_noLoopback">CoMic nu poate încă să confirme că PC-ul aude. Telefonul doar trimite. Canalul de control TCP va închide bucla.</string>
     <string name="ph_notYet">Încă nu</string>
     <string name="ph_underConstruction">În lucru</string>
-    <string name="ph_soonEffects">Nu e făcut încă. Ca să alegi vocea de pe telefon trebuie canalul de control TCP: acum telefonul doar trimite sunet într-o singură direcție și nu are cum să spună nimic PC-ului. Până atunci, schimbă vocea în CoMic pe PC.</string>
+    <string name="ph_soonEffects">Inca nefacut. Canalul de control exista, dar schimbarea vocii de pe telefon tot trebuie scrisa. Pana atunci, schimb-o din CoMic pe calculator.</string>
     <string name="ph_voiceList">Vocile din CoMic pe PC</string>
-    <string name="ph_tuneOnPc">Acestea stau pe PC. Telefonul nu le poate nici citi, nici mișca, până apare canalul de control.</string>
+    <string name="ph_tuneOnPc">Acestea stau pe calculator. Mutarea lor de pe telefon inca nu e facuta.</string>
     <string name="pro_title">Fiecare voce, cum vrei tu</string>
     <string name="pro_perk1">Toate vocile, plus cele noi din actualizări</string>
     <string name="pro_perk2">Reglezi înălțimea, distorsiunea, tremurul și altele</string>

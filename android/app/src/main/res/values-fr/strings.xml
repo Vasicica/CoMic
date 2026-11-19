@@ -193,12 +193,11 @@
     <string name="ph_statSent">Envoyé</string>
     <string name="ph_statTo">Vers</string>
     <string name="ph_secondsShort">%1$s s</string>
-    <string name="ph_noLoopback">CoMic ne peut pas encore confirmer que le PC entend. Le téléphone ne fait qu\'envoyer. Le canal de contrôle TCP fermera la boucle.</string>
     <string name="ph_notYet">Pas encore</string>
     <string name="ph_underConstruction">En chantier</string>
-    <string name="ph_soonEffects">Pas encore fait. Choisir la voix depuis le téléphone demande le canal de contrôle TCP : pour l\'instant le téléphone envoie seulement du son dans un sens et ne peut rien dire au PC. En attendant, changez la voix dans CoMic sur le PC.</string>
+    <string name="ph_soonEffects">Pas encore fait. Le canal de controle existe, mais changer la voix depuis le telephone reste a ecrire. En attendant, changez-la dans CoMic sur le PC.</string>
     <string name="ph_voiceList">Les voix sur votre PC</string>
-    <string name="ph_tuneOnPc">Elles vivent sur le PC. Le téléphone ne peut ni les lire ni les bouger avant que le canal de contrôle existe.</string>
+    <string name="ph_tuneOnPc">Ils vivent sur le PC. Les deplacer depuis le telephone n’est pas encore fait.</string>
     <string name="pro_title">Chaque voix, à votre façon</string>
     <string name="pro_perk1">Toutes les voix, et les nouvelles des mises à jour</string>
     <string name="pro_perk2">Réglez la hauteur, la saturation, le tremblement et plus</string>

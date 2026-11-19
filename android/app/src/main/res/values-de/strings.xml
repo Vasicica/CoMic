@@ -193,12 +193,11 @@
     <string name="ph_statSent">Gesendet</string>
     <string name="ph_statTo">An</string>
     <string name="ph_secondsShort">%1$s s</string>
-    <string name="ph_noLoopback">CoMic kann noch nicht bestätigen, dass der PC das hört. Das Handy sendet nur. Der TCP-Steuerkanal schließt diesen Kreis.</string>
     <string name="ph_notYet">Noch nicht</string>
     <string name="ph_underConstruction">Im Bau</string>
-    <string name="ph_soonEffects">Noch nicht gebaut. Die Stimme vom Handy aus zu wählen braucht den TCP-Steuerkanal: im Moment schickt das Handy nur Ton in eine Richtung und kann dem PC nichts sagen. Bis dahin änderst du die Stimme in CoMic am PC.</string>
+    <string name="ph_soonEffects">Noch nicht gebaut. Der Steuerkanal ist da, aber die Stimme vom Telefon aus zu wechseln muss noch geschrieben werden. Bis dahin aendere sie in CoMic am PC.</string>
     <string name="ph_voiceList">Die Stimmen auf deinem PC</string>
-    <string name="ph_tuneOnPc">Sie wohnen auf dem PC. Das Handy kann sie weder lesen noch bewegen, solange es den Steuerkanal nicht gibt.</string>
+    <string name="ph_tuneOnPc">Die leben auf dem PC. Sie vom Telefon aus zu bewegen ist noch nicht gebaut.</string>
     <string name="pro_title">Jede Stimme, wie du sie willst</string>
     <string name="pro_perk1">Alle Stimmen, auch die neuen aus Updates</string>
     <string name="pro_perk2">Tonhöhe, Verzerrung, Zittern und mehr einstellen</string>

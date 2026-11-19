@@ -193,12 +193,11 @@
     <string name="ph_statSent">Gönderilen</string>
     <string name="ph_statTo">Nereye</string>
     <string name="ph_secondsShort">%1$s sn</string>
-    <string name="ph_noLoopback">CoMic PC\'nin bunu duyduğunu henüz doğrulayamıyor. Telefon yalnızca gönderiyor. TCP denetim kanalı bu halkayı kapatacak.</string>
     <string name="ph_notYet">Henüz yok</string>
     <string name="ph_underConstruction">Yapım aşamasında</string>
-    <string name="ph_soonEffects">Henüz yapılmadı. Sesi telefondan seçmek TCP denetim kanalını gerektirir: şu an telefon sesi tek yönde gönderiyor ve PC\'ye hiçbir şey söyleyemiyor. O zamana kadar sesi PC\'deki CoMic\'ten değiştir.</string>
+    <string name="ph_soonEffects">Henuz yapilmadi. Kontrol kanali var, ama sesi telefondan degistirmek henuz yazilmadi. O zamana kadar sesi bilgisayardaki CoMic’ten degistirin.</string>
     <string name="ph_voiceList">PC\'nizdeki sesler</string>
-    <string name="ph_tuneOnPc">Bunlar PC tarafında duruyor. Denetim kanalı olmadan telefon onları ne okuyabilir ne de oynatabilir.</string>
+    <string name="ph_tuneOnPc">Bunlar bilgisayarda. Telefondan degistirmek henuz yapilmadi.</string>
     <string name="pro_title">Her ses, senin istediğin gibi</string>
     <string name="pro_perk1">Tüm sesler ve güncellemelerle gelen yenileri</string>
     <string name="pro_perk2">Perde, bozulma, titreme ve daha fazlası</string>

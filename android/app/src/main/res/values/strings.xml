@@ -194,12 +194,11 @@
     <string name="ph_statSent">Sent</string>
     <string name="ph_statTo">To</string>
     <string name="ph_secondsShort">%1$s s</string>
-    <string name="ph_noLoopback">CoMic cannot confirm the PC is hearing this yet. The phone only sends. The TCP control channel will close that loop.</string>
     <string name="ph_notYet">Not yet</string>
     <string name="ph_underConstruction">Under construction</string>
-    <string name="ph_soonEffects">Not built yet. Picking a voice from the phone needs the TCP control channel: right now the phone only sends audio one way and has no way to tell the PC anything. Until then, change the voice in CoMic on the PC.</string>
+    <string name="ph_soonEffects">Not built yet. The control channel is in place, but switching the voice from the phone still has to be written. Until then, change it in CoMic on the PC.</string>
     <string name="ph_voiceList">Voices on your PC</string>
-    <string name="ph_tuneOnPc">These live on the PC. The phone can neither read them nor move them until the control channel exists.</string>
+    <string name="ph_tuneOnPc">These live on the PC. Moving them from the phone is not built yet.</string>
     <string name="pro_title">Every voice, tuned your way</string>
     <string name="pro_perk1">All voices, plus new ones in updates</string>
     <string name="pro_perk2">Adjust pitch, grit, wobble and more</string>

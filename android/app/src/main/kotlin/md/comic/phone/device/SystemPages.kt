@@ -13,15 +13,32 @@ import android.provider.Settings
  * aplicatii. Deschidem lista si lasam omul sa aleaga.
  */
 object SystemPages {
-    /** Deschide o pagina din Setari; daca lipseste pe telefonul asta, Setarile. */
-    fun open(context: Context, action: String) {
-        val intent = Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        val inlocuitor = Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching { context.startActivity(intent) }
-            .onFailure { runCatching { context.startActivity(inlocuitor) } }
+    /**
+     * Deschide prima pagina din [actions] care exista pe telefonul asta.
+     *
+     * Mai multe incercari, nu una: paginile cele mai folositoare sunt adesea
+     * cele pe care Android nu le promite. Daca niciuna nu merge, deschidem
+     * Setarile, ca omul sa nu ramana cu un buton care nu face nimic.
+     */
+    fun open(context: Context, vararg actions: String) {
+        val incercari = actions.toList() + Settings.ACTION_SETTINGS
+        for (action in incercari) {
+            val intent = Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (runCatching { context.startActivity(intent) }.isSuccess) return
+        }
     }
 
-    fun openTethering(context: Context) = open(context, Settings.ACTION_WIRELESS_SETTINGS)
+    /**
+     * Pagina "Punct de acces si modem", unde se aprinde partajarea prin USB.
+     *
+     * `TETHER_SETTINGS` duce fix acolo, dar e o actiune pe care Android nu o
+     * promite: nu are constanta in SDK si pe unele telefoane lipseste.
+     * De-aceea e scrisa de mana, cu setarile wireless ca rezerva. Pana la
+     * schimbarea asta butonul deschidea direct rezerva, si te lasa cu doua
+     * niveluri de cautat exact cand aveai nevoie de un singur comutator.
+     */
+    fun openTethering(context: Context) =
+        open(context, "android.settings.TETHER_SETTINGS", Settings.ACTION_WIRELESS_SETTINGS)
 
     fun openBattery(context: Context) =
         open(context, Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)

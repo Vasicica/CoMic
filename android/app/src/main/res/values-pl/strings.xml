@@ -193,12 +193,11 @@
     <string name="ph_statSent">Wysłano</string>
     <string name="ph_statTo">Do</string>
     <string name="ph_secondsShort">%1$s s</string>
-    <string name="ph_noLoopback">CoMic nie potrafi jeszcze potwierdzić, że komputer to słyszy. Telefon tylko wysyła. Kanał sterowania TCP zamknie to koło.</string>
     <string name="ph_notYet">Jeszcze nie</string>
     <string name="ph_underConstruction">W budowie</string>
-    <string name="ph_soonEffects">Jeszcze nie zrobione. Wybór głosu z telefonu wymaga kanału sterowania TCP: teraz telefon tylko wysyła dźwięk w jedną stronę i nie ma jak nic powiedzieć komputerowi. Do tego czasu zmieniaj głos w CoMic na komputerze.</string>
+    <string name="ph_soonEffects">Jeszcze nie zrobione. Kanal sterowania juz jest, ale zmiane glosu z telefonu trzeba dopiero napisac. Na razie zmieniaj go w CoMic na komputerze.</string>
     <string name="ph_voiceList">Głosy na twoim komputerze</string>
-    <string name="ph_tuneOnPc">Mieszkają na komputerze. Telefon nie potrafi ich ani odczytać, ani przesunąć, dopóki nie ma kanału sterowania.</string>
+    <string name="ph_tuneOnPc">Sa na komputerze. Zmienianie ich z telefonu nie jest jeszcze zrobione.</string>
     <string name="pro_title">Każdy głos po twojemu</string>
     <string name="pro_perk1">Wszystkie głosy i nowe z aktualizacji</string>
     <string name="pro_perk2">Wysokość, przester, drżenie i więcej</string>

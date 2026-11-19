@@ -557,8 +557,11 @@ private fun LivePanel(
         }
     }
 
-    Spacer(Modifier.height(14.dp))
-    NoticeCard(stringResource(R.string.ph_noLoopback))
+    // Aici statea un avertisment: "CoMic nu poate confirma inca daca PC-ul
+    // aude; telefonul doar trimite". Era adevarat cand a fost scris. Acum
+    // canalul de control exista, iar randul verde de deasupra spune chiar
+    // numele calculatorului si dus-intorsul masurat. Doua propozitii care se
+    // contrazic pe acelasi ecran sunt mai rele decat niciuna.
 
     Spacer(Modifier.height(14.dp))
     PlainButton(
