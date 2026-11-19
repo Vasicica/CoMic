@@ -524,7 +524,11 @@ const state = { view: 'connection', conn: null, voice: 'pirat', pro: true, tune:
 // Oglinda starii motorului. Pana la prima citire a comenzii `status`,
 // fereastra arata valori neutre; dupa aceea tot ce scrie in banda de sus si
 // in bara de jos vine din Rust, nu din presupunerile interfetei.
-const live = { running: false, source: null, level: 0, bufferedMs: 0, outputDevice: '', error: null };
+// `phone` vine de pe canalul de control (TCP). Pana la el, fereastra ghicea din
+// pachetele UDP ca "se intampla ceva"; acum stie al cui e telefonul, cat e
+// dus-intorsul si cand a plecat. Ramane gol cat timp nu s-a legat nimeni, si
+// pentru telefoanele vechi care nu stiu inca de canal.
+const live = { running: false, source: null, level: 0, bufferedMs: 0, outputDevice: '', phone: null, error: null };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -744,13 +748,22 @@ function render() {
   const run = live.running;
   const c = CONN[state.conn] ?? CONN.wifi;
 
+  // Telefonul se anunta pe canalul de control inainte sa curga primul cadru de
+  // sunet. De-aceea il aratam separat de `run`: intre "s-a legat" si "se aude"
+  // pot trece secunde, si pana acum erai lasat sa ghicesti ce se petrece.
+  const phone = live.phone;
+
   $('#strip').classList.toggle('on', run);
   $('#stream-title').textContent = run
     ? t('strip.streamingInto', { device: live.outputDevice || t('strip.outputDevice') })
+    : phone ? t('strip.phoneReady', { phone: phone.name })
     : on ? t('strip.listening') : t('strip.waiting');
   $('#stream-sub').textContent = live.error
     ? live.error
-    : run ? t('strip.voice', { voice: voiceName(voice) }) : t('strip.openPhone');
+    : phone?.muted ? t('strip.phoneMuted', { phone: phone.name })
+    : run ? t('strip.voice', { voice: voiceName(voice) })
+    : phone ? t('strip.phoneReadySub')
+    : t('strip.openPhone');
   $('#latency').textContent = run ? live.bufferedMs + ' ms' : t('none');
 
   $('#statusbar').classList.toggle('on', run);
@@ -758,10 +771,22 @@ function render() {
   $('#test-mic-label').textContent = peMicrofon ? t('fx.stopTest') : t('fx.test');
   $('#test-mic').classList.toggle('on', peMicrofon);
 
-  $('#st-label').textContent = live.error ? t('status.error') : run ? t('status.connected') : on ? t('status.listening') : t('status.disconnected');
-  $('#st-detail').textContent = live.error
-    ? '· ' + live.error
-    : run ? '· ' + t('status.buffered', { ms: live.bufferedMs }) : '· ' + t('status.noPhone');
+  $('#st-label').textContent = live.error ? t('status.error')
+    : (run || phone) ? t('status.connected')
+    : on ? t('status.listening') : t('status.disconnected');
+
+  // Bara de jos aduna ce stim, in ordinea in care conteaza: cine e, cat de
+  // departe e, cata rezerva avem. Numele si milisecundele nu se traduc, deci
+  // se pun de-a dreptul; doar rezerva are propozitia ei.
+  const amanunte = [];
+  if (live.error) amanunte.push(live.error);
+  else {
+    if (phone) amanunte.push(phone.name);
+    if (phone?.rttMs != null) amanunte.push(phone.rttMs + ' ms');
+    if (run) amanunte.push(t('status.buffered', { ms: live.bufferedMs }));
+    if (!amanunte.length) amanunte.push(t('status.noPhone'));
+  }
+  $('#st-detail').textContent = '· ' + amanunte.join(' · ');
   $('#st-icon use').setAttribute('href', '#' + (run ? c.icon : 'i-plug'));
   $('#st-proto').textContent = run ? c.label : t('status.idle');
   $('#st-proto-d').textContent = run ? (state.conn === 'ip' ? ($('#ip').value || '') + ':' + port : c.detail + ' ' + port) : '';
@@ -1015,13 +1040,16 @@ applyI18n();
     live.level = status.level;
     live.bufferedMs = status.bufferedMs;
     live.outputDevice = status.outputDevice;
+    // Un telefon care nu s-a legat pe canal e acelasi lucru cu niciun telefon.
+    live.phone = status.phone?.connected ? status.phone : null;
     live.error = status.error ?? null;
 
     paintMeter(status.running ? status.level : 0);
 
     // Textul se rescrie numai cand s-a schimbat ceva: altfel am redesena
     // fereastra de douazeci de ori pe secunda degeaba.
-    const signature = [status.running, status.source, status.error, status.bufferedMs, status.voice, status.outputDevice].join('|');
+    const signature = [status.running, status.source, status.error, status.bufferedMs, status.voice, status.outputDevice,
+      live.phone?.name, live.phone?.rttMs, live.phone?.muted].join('|');
     if (signature !== lastSignature) {
       lastSignature = signature;
       render();

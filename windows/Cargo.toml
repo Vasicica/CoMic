@@ -20,6 +20,9 @@ path = "src/main.rs"
 [dependencies]
 cpal = "0.15"
 serde = { version = "1", features = ["derive"] }
+# Mesajele canalului de control sunt JSON, cate unul pe linie. Vezi control.rs
+# pentru de ce JSON si nu un format propriu pe pozitii.
+serde_json = "1"
 
 [profile.release]
 opt-level = 3

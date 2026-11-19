@@ -30,6 +30,9 @@
     <string name="strip_waiting">Bağlı telefon yok</string>
     <string name="strip_voice">Ses: %1$s</string>
     <string name="strip_openPhone">Başlamak için telefonda CoMic\'i aç</string>
+    <string name="strip_phoneReady">%1$s bağlandı</string>
+    <string name="strip_phoneReadySub">Ses göndermek için telefonda Başlat’a dokunun</string>
+    <string name="strip_phoneMuted">%1$s sessizde</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Telefon ve PC aynı ağda.</string>
     <string name="card_wifi_on">%1$s portu dinleniyor. Telefondan bağlan.</string>

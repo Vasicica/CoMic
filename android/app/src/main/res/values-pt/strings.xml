@@ -30,6 +30,9 @@
     <string name="strip_waiting">Nenhum celular conectado</string>
     <string name="strip_voice">Voz: %1$s</string>
     <string name="strip_openPhone">Abra o CoMic no celular para começar</string>
+    <string name="strip_phoneReady">%1$s está conectado</string>
+    <string name="strip_phoneReadySub">Toque em Iniciar no celular para enviar o som</string>
+    <string name="strip_phoneMuted">%1$s está sem som</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Celular e PC na mesma rede.</string>
     <string name="card_wifi_on">Ouvindo na porta %1$s. Conecte pelo celular.</string>

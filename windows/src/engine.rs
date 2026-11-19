@@ -17,6 +17,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 use crate::audio::{self, Processing};
+use crate::control::{self, Peer};
 use crate::effects::{self, VoiceSettings};
 use crate::jitter::JitterBuffer;
 use crate::monitor::{self, MicQueue};
@@ -65,6 +66,10 @@ pub struct Status {
     pub frames_received: u64,
     pub frames_missing: u64,
     pub underruns: u64,
+    /// Telefonul legat pe canalul de control. Pana la canal, fereastra ghicea
+    /// din pachetele UDP ca "se intampla ceva"; acum stie al cui e telefonul,
+    /// cat e dus-intorsul si cand a plecat.
+    pub phone: Peer,
     /// Ultima eroare, in cuvinte pe care le poate citi utilizatorul.
     pub error: Option<String>,
 }
@@ -87,6 +92,9 @@ struct Running {
     jitter: Option<Arc<Mutex<JitterBuffer>>>,
     processing: Arc<Mutex<Processing>>,
     level: Arc<Mutex<f32>>,
+    /// Starea telefonului, scrisa de firul canalului de control si citita aici.
+    /// Lipseste pe ascultarea de proba: acolo nu exista telefon.
+    peer: Option<Arc<Mutex<Peer>>>,
     stop_network: Arc<AtomicBool>,
     network_thread: Option<JoinHandle<()>>,
 }
@@ -261,7 +269,7 @@ fn start_running(request: &StartRequest) -> Result<Running, String> {
     let level = Arc::new(Mutex::new(0.0_f32));
     let stop_network = Arc::new(AtomicBool::new(false));
 
-    let (playback, capture, jitter, network_thread) = match request.source {
+    let (playback, capture, jitter, peer, network_thread) = match request.source {
         Source::Microphone => {
             let queue = Arc::new(Mutex::new(MicQueue::new()));
             let capture =
@@ -285,7 +293,7 @@ fn start_running(request: &StartRequest) -> Result<Running, String> {
             )
             .map_err(|error| error.to_string())?;
 
-            (playback, Some(capture), None, None)
+            (playback, Some(capture), None, None, None)
         }
         Source::Network => {
             let buffer = Arc::new(Mutex::new(JitterBuffer::with_prefill(
@@ -313,13 +321,20 @@ fn start_running(request: &StartRequest) -> Result<Running, String> {
             let buffer_for_net = Arc::clone(&buffer);
             let stop_for_net = Arc::clone(&stop_network);
             net::spawn_discovery(port, Arc::clone(&stop_network));
+
+            // Canalul de control asculta pe TCP, pe acelasi numar de port pe
+            // care audio asculta pe UDP. Un singur numar de tinut minte, si o
+            // singura poveste cand trebuie deschis in Firewall.
+            let peer = Arc::new(Mutex::new(Peer::default()));
+            control::spawn_control(port, Arc::clone(&peer), Arc::clone(&stop_network));
+
             let thread = thread::spawn(move || {
                 if let Err(error) = net::receive_audio(port, buffer_for_net, stop_for_net) {
                     eprintln!("[motor] ascultarea pe {port} s-a oprit: {error}");
                 }
             });
 
-            (playback, None, Some(buffer), Some(thread))
+            (playback, None, Some(buffer), Some(peer), Some(thread))
         }
     };
 
@@ -329,6 +344,7 @@ fn start_running(request: &StartRequest) -> Result<Running, String> {
         jitter,
         processing,
         level,
+        peer,
         stop_network,
         network_thread,
     })
@@ -369,11 +385,18 @@ fn publish(running: &Option<Running>, status: &Arc<Mutex<Status>>) {
         status.running = false;
         status.level = 0.0;
         status.buffered_ms = 0;
+        status.phone = Peer::default();
         return;
     };
 
     status.running = true;
     status.level = active.level.lock().map(|level| *level).unwrap_or(0.0);
+    status.phone = match active.peer.as_ref() {
+        Some(peer) => peer.lock().map(|peer| peer.clone()).unwrap_or_default(),
+        // Ascultarea de proba merge de la microfonul calculatorului: nu exista
+        // niciun telefon de aratat, si nu inventam unul.
+        None => Peer::default(),
+    };
 
     if let Some(jitter) = active.jitter.as_ref() {
         if let Ok(jitter) = jitter.lock() {

@@ -30,6 +30,9 @@
     <string name="strip_waiting">Niciun telefon conectat</string>
     <string name="strip_voice">Voce: %1$s</string>
     <string name="strip_openPhone">Deschide CoMic pe telefon ca să începi</string>
+    <string name="strip_phoneReady">%1$s e conectat</string>
+    <string name="strip_phoneReadySub">Apasă Start pe telefon ca să trimiți sunet</string>
+    <string name="strip_phoneMuted">%1$s e pe mut</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Telefonul și PC-ul în aceeași rețea.</string>
     <string name="card_wifi_on">Ascult pe portul %1$s. Conectează-te de pe telefon.</string>

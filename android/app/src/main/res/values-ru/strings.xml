@@ -30,6 +30,9 @@
     <string name="strip_waiting">Телефон не подключён</string>
     <string name="strip_voice">Голос: %1$s</string>
     <string name="strip_openPhone">Откройте CoMic на телефоне, чтобы начать</string>
+    <string name="strip_phoneReady">%1$s подключён</string>
+    <string name="strip_phoneReadySub">Нажмите «Старт» на телефоне, чтобы пошёл звук</string>
+    <string name="strip_phoneMuted">%1$s без звука</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Телефон и ПК в одной сети.</string>
     <string name="card_wifi_on">Слушаю порт %1$s. Подключитесь с телефона.</string>

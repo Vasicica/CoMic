@@ -4,6 +4,7 @@
 //! comanda (`comic-receiver`). Logica audio nu stie nimic despre interfata.
 
 pub mod audio;
+pub mod control;
 pub mod effects;
 pub mod engine;
 pub mod jitter;

@@ -30,6 +30,9 @@
     <string name="strip_waiting">Brak połączonego telefonu</string>
     <string name="strip_voice">Głos: %1$s</string>
     <string name="strip_openPhone">Otwórz CoMic na telefonie, aby zacząć</string>
+    <string name="strip_phoneReady">%1$s jest połączony</string>
+    <string name="strip_phoneReadySub">Naciśnij Start na telefonie, aby wysłać dźwięk</string>
+    <string name="strip_phoneMuted">%1$s jest wyciszony</string>
     <string name="card_wifi_name">Wi-Fi</string>
     <string name="card_wifi_off">Telefon i PC w tej samej sieci.</string>
     <string name="card_wifi_on">Nasłuchuję na porcie %1$s. Połącz się z telefonu.</string>
