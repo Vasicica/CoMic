@@ -2,10 +2,31 @@ target/
 build/
 .gradle/
 *.apk
-*.keystore
 local.properties
 __pycache__/
 .venv/
+
+# Chei, taine, lucruri care nu se mai pot lua inapoi odata publicate.
+#
+# Un depozit public nu uita. O cheie stearsa intr-un commit de maine ramane in
+# istoric si se citeste de oricine, deci singura aparare care tine e sa nu
+# intre niciodata. De-aceea sunt scrise aici si cele pe care proiectul nu le
+# foloseste azi: ziua in care apare prima nu trebuie sa fie si ziua in care
+# cineva isi aduce aminte de randul asta.
+*.keystore
+*.jks
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+google-services.json
+
+# Rezultate de compilare. Nu au ce cauta in istoric: sunt mari, se schimba la
+# fiecare compilare, si oricum se fac din sursele de alaturi.
+*.aab
+*.exe
+*.msi
 
 # Android Studio
 .idea/
