@@ -1,0 +1,25 @@
+name: Translation
+description: Add a new language or fix an existing translation
+labels: [translation, good first issue]
+body:
+  - type: input
+    id: lang
+    attributes:
+      label: Language and code
+      placeholder: Italian (it)
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of change?
+      options:
+        - New language
+        - Fix in an existing language
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: For a fix, which text is wrong and what it should say. For a new language, just say you are working on it, then follow CONTRIBUTING.md.
