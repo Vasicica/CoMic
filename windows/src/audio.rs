@@ -303,7 +303,10 @@ mod tests {
             "Динамики (2- VB-Audio Virtual Cable)",
             "Динамики (High Definition Audio Device)",
         ]));
-        assert_eq!(gasit.as_deref(), Some("Динамики (2- VB-Audio Virtual Cable)"));
+        assert_eq!(
+            gasit.as_deref(),
+            Some("Динамики (2- VB-Audio Virtual Cable)")
+        );
     }
 
     /// Daca exista numai capatul cu saisprezece canale, il luam pe el: tot e
